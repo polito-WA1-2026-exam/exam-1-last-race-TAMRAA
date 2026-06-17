@@ -1,0 +1,632 @@
+/* Last Race - Torino Metro Game Styles */
+
+:root {
+  --metro-red: #E53935;
+  --metro-blue: #1E88E5;
+  --metro-green: #43A047;
+  --metro-yellow: #FDD835;
+  --dark-bg: #1a1a2e;
+  --darker-bg: #16161e;
+  --card-bg: #252538;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--dark-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar-metro {
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%) !important;
+  border-bottom: 2px solid var(--metro-red);
+}
+
+.metro-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--metro-red);
+  color: white;
+  font-weight: bold;
+  border-radius: 50%;
+}
+
+/* Home Page */
+.home-page {
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+  min-height: 100vh;
+}
+
+.hero-section {
+  padding: 4rem 0;
+  background: radial-gradient(ellipse at center, #2a2a4e 0%, #1a1a2e 70%);
+}
+
+.min-vh-75 {
+  min-height: 75vh;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 800;
+  letter-spacing: -2px;
+  margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  max-width: 500px;
+  margin-bottom: 2rem;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.metro-preview {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.metro-preview-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Rule Cards */
+.rule-card {
+  background: var(--card-bg);
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+  height: 100%;
+  margin-bottom: 1rem;
+}
+
+.rule-card:hover {
+  transform: translateY(-5px);
+}
+
+.rule-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background: var(--metro-red);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+}
+
+/* Login Page */
+.login-page {
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--card-bg);
+  border: none;
+  border-radius: 16px;
+}
+
+.login-card .card-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Game Page */
+.game-page {
+  background: var(--dark-bg);
+  min-height: 100vh;
+}
+
+.game-container {
+  padding: 1rem;
+}
+
+.game-card {
+  background: var(--card-bg);
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.game-card .card-header {
+  background: var(--darker-bg);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 1rem;
+}
+
+.game-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+/* Metro Map */
+.metro-map-container {
+  background: var(--darker-bg);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.metro-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 400px;
+}
+
+.station {
+  cursor: pointer;
+}
+
+.station:not(.disabled):hover .station-circle {
+  filter: brightness(1.3) drop-shadow(0 0 6px rgba(255,255,255,0.5));
+}
+
+.station-circle {
+  transition: filter 0.15s ease;
+}
+
+.station-name {
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.station.disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+
+/* Metro Legend */
+.metro-legend {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 20px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.legend-label {
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.route-line {
+  animation: dashMove 1s linear infinite;
+}
+
+@keyframes dashMove {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Timer */
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--darker-bg);
+  min-width: 80px;
+}
+
+.timer-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.timer-normal .timer-value {
+  color: #4CAF50;
+}
+
+.timer-warning .timer-value {
+  color: #FF9800;
+}
+
+.timer-critical .timer-value {
+  color: #F44336;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.timer-warning-text {
+  font-size: 0.75rem;
+  color: #FF9800;
+}
+
+.timer-critical .timer-warning-text {
+  color: #F44336;
+}
+
+/* Coin Counter */
+.coin-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--darker-bg);
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.coin-value {
+  font-size: 1.25rem;
+}
+
+.coin-change {
+  font-size: 0.875rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+}
+
+.coin-change-positive {
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.2);
+}
+
+.coin-change-negative {
+  color: #F44336;
+  background: rgba(244, 67, 54, 0.2);
+}
+
+/* Route Builder */
+.route-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: white;
+}
+
+.route-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+}
+
+.route-actions {
+  display: flex;
+  gap: 0.5rem;
+
+}
+
+.route-display {
+  background: var(--darker-bg);
+  border-radius: 8px;
+  padding: 1rem;
+  min-height: 100px;
+}
+
+.route-empty {
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0;
+}
+
+.route-stations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.route-station-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.route-number {
+  font-size: 0.75rem;
+}
+
+.route-station-name {
+  font-weight: 500;
+}
+
+.route-arrow {
+  color: var(--text-secondary);
+  margin: 0 0.25rem;
+}
+
+.route-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.route-info {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.route-confirm-btn {
+  min-width: 150px;
+}
+
+/* Mission Info */
+.mission-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mission-from,
+.mission-to {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mission-label {
+  color: var(--text-secondary);
+  min-width: 40px;
+}
+
+.mission-station {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Journey Animation */
+.journey-animation {
+  padding: 1rem;
+  background: var(--darker-bg);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.journey-header {
+  margin-bottom: 1.5rem;
+}
+
+.journey-header h5 {
+  margin-bottom: 0.75rem;
+}
+
+.current-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  font-size: 1.25rem;
+}
+
+.segment-from,
+.segment-to {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.station-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.station-dot.from {
+  background: #4CAF50;
+}
+
+.station-dot.to {
+  background: #F44336;
+}
+
+.segment-arrow {
+  font-size: 1.5rem;
+}
+
+.train-icon {
+  animation: moveRight 1s ease-in-out infinite;
+}
+
+@keyframes moveRight {
+  0%, 100% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+}
+
+/* Event Modal */
+.event-modal .modal-content {
+  background: var(--card-bg);
+  border: none;
+}
+
+.event-icon {
+  font-size: 1.5rem;
+}
+
+.event-description {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.event-effect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.event-effect.positive {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.event-effect.negative {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+}
+
+/* Game Over Modal */
+.game-over-modal .modal-content {
+  background: var(--card-bg);
+  border: none;
+}
+
+.game-over-stats {
+  background: var(--darker-bg);
+}
+
+.game-over-stats td {
+  padding: 1rem;
+}
+
+/* Leaderboard */
+.leaderboard-page {
+  background: var(--dark-bg);
+  min-height: 100vh;
+}
+
+.leaderboard-page .card {
+  background: var(--card-bg);
+  border: none;
+}
+
+.leaderboard-page .table {
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.leaderboard-page .table thead th {
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
+.leaderboard-page .table tbody td {
+  border-color: rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+
+.leaderboard-page .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255,255,255,0.02);
+}
+
+.leaderboard-page .table-hover tbody tr:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.top-three {
+  background: linear-gradient(90deg, rgba(255,215,0,0.1) 0%, transparent 100%);
+}
+
+.score-value {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: var(--metro-blue);
+}
+
+.coins-value {
+  color: #FDD835;
+}
+
+/* Nav Tabs for dark theme */
+.nav-tabs {
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--text-primary);
+  border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--text-primary);
+  background: transparent;
+  border-color: transparent;
+  border-bottom-color: var(--metro-red);
+}
+
+/* Footer */
+.footer {
+  background: var(--darker-bg);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .game-card .card-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .current-segment {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
