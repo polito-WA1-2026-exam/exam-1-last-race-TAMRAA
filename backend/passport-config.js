@@ -10,7 +10,6 @@ import {
 passport.use(
   new LocalStrategy(function (username, password, done) {
     const user = getUserByUsername(username);
-
     if (!user) {
       return done(null, false, { message: "Username non trovato." });
     }
