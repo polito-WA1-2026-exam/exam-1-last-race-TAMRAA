@@ -16,7 +16,7 @@ export default function NavBar() {
       <Container>
         <Navbar.Brand as={Link} to="/" className="d-flex align-items-center">
           <span className="metro-logo me-2">M</span>
-          <span>Last Race - Torino</span>
+          <span>Torino Last Race</span>
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="navbar-nav" />
