@@ -39,7 +39,11 @@ export const authAPI = {
       body: JSON.stringify({ username, password }),
     }),
 
+<<<<<<< HEAD
   // Log out the currently logged in user
+=======
+  // Log out the currently logged-in user
+>>>>>>> df605aa820eb2c2a8e319e47c7f0054e1c750323
   logout: () => request("/sessions/current", { method: "DELETE" }),
 
   // Get information about the current user session

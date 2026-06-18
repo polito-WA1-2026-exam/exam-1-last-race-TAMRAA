@@ -78,4 +78,8 @@ export function useAuth() {
   return context;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> df605aa820eb2c2a8e319e47c7f0054e1c750323
 export default AuthContext;

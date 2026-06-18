@@ -1,5 +1,9 @@
 # Exam #N: "Exam Title"
+<<<<<<< HEAD
 ## Student: s123456 LASTNAME FIRSTNAME
+=======
+## Student: s123456 LASTNAME FIRSTNAME 
+>>>>>>> df605aa820eb2c2a8e319e47c7f0054e1c750323
 
 ## React Client Application Routes
 
@@ -45,4 +49,8 @@
 
 ## Use of AI Tools
 Briefly describe whether you used any AI tools (e.g., ChatGPT, GitHub Copilot, Claude) while working on this project, for which purposes (e.g., clarifying concepts, debugging, generating code), and how you verified or adapted their output.
+<<<<<<< HEAD
 If you did not use any AI tools, simply state so.
+=======
+If you did not use any AI tools, simply state so.
+>>>>>>> df605aa820eb2c2a8e319e47c7f0054e1c750323
