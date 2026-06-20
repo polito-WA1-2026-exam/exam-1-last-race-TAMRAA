@@ -245,7 +245,7 @@ export default function GamePage() {
             </div>
 
             <button className="btn btn-danger w-100" onClick={handleEndGame}>
-              Match finished
+              Abort Match
             </button>
           </div>
         </div>

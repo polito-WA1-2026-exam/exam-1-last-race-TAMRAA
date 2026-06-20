@@ -4,9 +4,7 @@ export default function GameOverModal({ data, onPlayAgain, onGoHome }) {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Match finished</h2>
-        <p className="sub">{reason}</p>
-
+        <h2>Match aborted</h2>
         <div className="score-display">{score}</div>
         <p style={{ color: "#888", marginBottom: "16px" }}>Final Points</p>
 

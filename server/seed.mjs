@@ -8,7 +8,7 @@ import db from "./db.mjs";
 import crypto from "crypto";
 import { readFileSync } from "fs";
 
-// ---------- HELPER: promisify db methods ----------
+// ---------- db methods ----------
 function run(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
@@ -45,7 +45,7 @@ function exec(sql) {
   });
 }
 
-// ---------- Helper: hash password ----------
+// ---------- hash password ----------
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
   const hash = crypto.scryptSync(password, salt, 32).toString("hex");
@@ -55,14 +55,13 @@ function hashPassword(password) {
 // ---------- Main seed function ----------
 async function seed() {
   try {
-    // 1. Create schema (if not exists)
+    // 1. Create schema
     const schema = readFileSync("schema.sql", "utf-8");
     await exec(schema);
     console.log("✓ Schema created");
 
-    // 2. Clear all existing data (respect foreign keys)
+    // 2. Clear all existing data
     console.log("Clearing existing data...");
-    await exec("PRAGMA foreign_keys = OFF;");
     await exec("DELETE FROM game_score;");
     await exec("DELETE FROM game_session;");
     await exec("DELETE FROM connection;");
@@ -71,7 +70,6 @@ async function seed() {
     await exec("DELETE FROM station;");
     await exec("DELETE FROM line;");
     await exec("DELETE FROM user;");
-    await exec("PRAGMA foreign_keys = ON;");
     console.log("✓ Existing data cleared");
 
     // ---------- USERS ----------
@@ -90,7 +88,7 @@ async function seed() {
     }
     console.log("✓ Users seeded");
 
-    // ---------- LINES (Torino) ----------
+    // ---------- LINES ----------
     const lines = [
       { id: "R", name: "Linea Rossa", color: "#E53935" },
       { id: "B", name: "Linea Blu", color: "#1E88E5" },
@@ -107,43 +105,44 @@ async function seed() {
     }
     console.log("✓ Lines seeded");
 
-    // ---------- STATIONS (Torino network – 13 stations) ----------
+    // ---------- STATIONS – all IDs must match those used in stationLines and connections ----------
     const stations = [
       // Red Line (West → East)
       { id: "centrale", name: "Centrale", pos_x: 80, pos_y: 150 },
-      { id: "porta_velaria", name: "Porta Velaria", pos_x: 170, pos_y: 150 },
+      { id: "porta_palazzo", name: "Porta Palazzo", pos_x: 170, pos_y: 150 },
+      { id: "piazza_statuto", name: "Piazza Statuto", pos_x: 260, pos_y: 150 },
       {
-        id: "crocevia_falco",
-        name: "Crocevia del Falco",
-        pos_x: 260,
-        pos_y: 150,
-      },
-      {
-        id: "piazza_lanterne",
-        name: "Piazza delle Lanterne",
+        id: "piazza_castello",
+        name: "Piazza Castello",
         pos_x: 350,
         pos_y: 150,
       },
       { id: "porta_nuova", name: "Porta Nuova", pos_x: 450, pos_y: 150 },
 
       // Blue Line (North → South)
-      { id: "fontana_oscura", name: "Fontana Oscura", pos_x: 400, pos_y: 50 },
-      { id: "borgo_sereno", name: "Borgo Sereno", pos_x: 400, pos_y: 110 },
+      { id: "superga", name: "Superga", pos_x: 400, pos_y: 50 },
       {
-        id: "viale_mosaici",
-        name: "Viale dei Mosaici",
+        id: "monte_cappucini",
+        name: "Monte dei Cappucini",
+        pos_x: 400,
+        pos_y: 110,
+      },
+      {
+        id: "barriera_milano",
+        name: "Barriera Milano",
         pos_x: 400,
         pos_y: 170,
       },
       { id: "lingotto", name: "Lingotto", pos_x: 400, pos_y: 230 },
 
       // Green Line (North → South)
-      { id: "torre_cinerea", name: "Torre Cinerea", pos_x: 170, pos_y: 50 },
-      { id: "campo_eco", name: "Campo dell'Eco", pos_x: 170, pos_y: 230 },
+      // FIX: use "juventus" instead of "torre_cinerea"
+      { id: "juventus", name: "Juventus Stadium", pos_x: 170, pos_y: 50 },
+      { id: "campus_einaudi", name: "Campus Einaudi", pos_x: 170, pos_y: 230 },
       { id: "cenisia", name: "Cenisia", pos_x: 170, pos_y: 300 },
 
       // Yellow Line (East → West)
-      { id: "rebaudengo", name: "Rebaudengo", pos_x: 400, pos_y: 320 },
+      { id: "marconi", name: "Marconi", pos_x: 400, pos_y: 300 },
     ];
 
     for (const s of stations) {
@@ -152,37 +151,37 @@ async function seed() {
         [s.id, s.name, s.pos_x, s.pos_y],
       );
     }
-    console.log("✓ Stations seeded (13 stations)");
+    console.log("✓ Stations seeded");
 
-    // ---------- STATION-LINE RELATIONSHIPS ----------
+    // ---------- STATION-LINE RELATIONSHIPS – use the correct station IDs ----------
     const stationLines = [
       // Red Line
       { station: "centrale", line: "R", seq: 1 },
-      { station: "porta_velaria", line: "R", seq: 2 },
-      { station: "crocevia_falco", line: "R", seq: 3 },
-      { station: "piazza_lanterne", line: "R", seq: 4 },
+      { station: "porta_palazzo", line: "R", seq: 2 },
+      { station: "piazza_statuto", line: "R", seq: 3 },
+      { station: "piazza_castello", line: "R", seq: 4 },
       { station: "porta_nuova", line: "R", seq: 5 },
 
       // Blue Line
-      { station: "fontana_oscura", line: "B", seq: 1 },
-      { station: "borgo_sereno", line: "B", seq: 2 },
+      { station: "superga", line: "B", seq: 1 },
+      { station: "monte_cappucini", line: "B", seq: 2 },
       { station: "centrale", line: "B", seq: 3 },
-      { station: "viale_mosaici", line: "B", seq: 4 },
+      { station: "barriera_milano", line: "B", seq: 4 },
       { station: "lingotto", line: "B", seq: 5 },
 
-      // Green Line
-      { station: "porta_velaria", line: "G", seq: 1 },
-      { station: "fontana_oscura", line: "G", seq: 2 },
-      { station: "torre_cinerea", line: "G", seq: 3 },
-      { station: "campo_eco", line: "G", seq: 4 },
+      // Green Line – FIX: use "juventus" instead of "torre_cinerea"
+      { station: "porta_palazzo", line: "G", seq: 1 },
+      { station: "superga", line: "G", seq: 2 },
+      { station: "juventus", line: "G", seq: 3 },
+      { station: "campus_einaudi", line: "G", seq: 4 },
       { station: "cenisia", line: "G", seq: 5 },
 
-      // Yellow Line
-      { station: "piazza_lanterne", line: "Y", seq: 1 },
-      { station: "torre_cinerea", line: "Y", seq: 2 },
-      { station: "viale_mosaici", line: "Y", seq: 3 },
-      { station: "campo_eco", line: "Y", seq: 4 },
-      { station: "rebaudengo", line: "Y", seq: 5 },
+      // Yellow Line – FIX: use "juventus" instead of "torre_cinerea"
+      { station: "piazza_castello", line: "Y", seq: 1 },
+      { station: "juventus", line: "Y", seq: 2 },
+      { station: "barriera_milano", line: "Y", seq: 3 },
+      { station: "campus_einaudi", line: "Y", seq: 4 },
+      { station: "marconi", line: "Y", seq: 5 },
     ];
 
     for (const sl of stationLines) {
@@ -193,31 +192,31 @@ async function seed() {
     }
     console.log("✓ Station-Line relationships seeded");
 
-    // ---------- CONNECTIONS (bidirectional) ----------
+    // ---------- CONNECTIONS (bidirectional) – all station IDs must exist ----------
     const connections = [
       // Red Line
-      { a: "centrale", b: "porta_velaria", line: "R" },
-      { a: "porta_velaria", b: "crocevia_falco", line: "R" },
-      { a: "crocevia_falco", b: "piazza_lanterne", line: "R" },
-      { a: "piazza_lanterne", b: "porta_nuova", line: "R" },
+      { a: "centrale", b: "porta_palazzo", line: "R" },
+      { a: "porta_palazzo", b: "piazza_statuto", line: "R" },
+      { a: "piazza_statuto", b: "piazza_castello", line: "R" },
+      { a: "piazza_castello", b: "porta_nuova", line: "R" },
 
       // Blue Line
-      { a: "fontana_oscura", b: "borgo_sereno", line: "B" },
-      { a: "borgo_sereno", b: "centrale", line: "B" },
-      { a: "centrale", b: "viale_mosaici", line: "B" },
-      { a: "viale_mosaici", b: "lingotto", line: "B" },
+      { a: "superga", b: "monte_cappucini", line: "B" },
+      { a: "monte_cappucini", b: "centrale", line: "B" },
+      { a: "centrale", b: "barriera_milano", line: "B" },
+      { a: "barriera_milano", b: "lingotto", line: "B" },
 
-      // Green Line
-      { a: "porta_velaria", b: "fontana_oscura", line: "G" },
-      { a: "fontana_oscura", b: "torre_cinerea", line: "G" },
-      { a: "torre_cinerea", b: "campo_eco", line: "G" },
-      { a: "campo_eco", b: "cenisia", line: "G" },
+      // Green Line – FIX: use "juventus"
+      { a: "porta_palazzo", b: "superga", line: "G" },
+      { a: "superga", b: "juventus", line: "G" },
+      { a: "juventus", b: "campus_einaudi", line: "G" },
+      { a: "campus_einaudi", b: "cenisia", line: "G" },
 
-      // Yellow Line
-      { a: "piazza_lanterne", b: "torre_cinerea", line: "Y" },
-      { a: "torre_cinerea", b: "viale_mosaici", line: "Y" },
-      { a: "viale_mosaici", b: "campo_eco", line: "Y" },
-      { a: "campo_eco", b: "rebaudengo", line: "Y" },
+      // Yellow Line – FIX: use "juventus"
+      { a: "piazza_castello", b: "juventus", line: "Y" },
+      { a: "juventus", b: "barriera_milano", line: "Y" },
+      { a: "barriera_milano", b: "campus_einaudi", line: "Y" },
+      { a: "campus_einaudi", b: "marconi", line: "Y" },
     ];
 
     for (const c of connections) {
@@ -233,67 +232,65 @@ async function seed() {
     }
     console.log("✓ Connections seeded (bidirectional)");
 
-    // ---------- EVENTS (Italian, 10 events) ----------
+    // ---------- EVENTS (English) ----------
     const events = [
       {
-        name: "Viaggio tranquillo",
-        description: "Il viaggio procede senza intoppi.",
+        name: "Quiet Journey",
+        description: "The journey proceeds without any incidents.",
         effect: 0,
         prob: 0.15,
       },
       {
-        name: "Piattaforma sbagliata",
-        description: "Sei salito sulla piattaforma sbagliata, perdi tempo.",
+        name: "Wrong Platform",
+        description: "You boarded the wrong platform, wasting time.",
         effect: -2,
         prob: 0.12,
       },
       {
-        name: "Passeggero gentile",
-        description: "Un passeggero ti offre una moneta per averlo aiutato.",
+        name: "Kind Passenger",
+        description: "A passenger gives you a coin for helping them.",
         effect: 1,
         prob: 0.1,
       },
       {
-        name: "Controllo biglietti",
-        description:
-          "I controllori verificano il tuo biglietto. Tutto in regola.",
+        name: "Ticket Inspection",
+        description: "Inspectors check your ticket. All is in order.",
         effect: -1,
         prob: 0.08,
       },
       {
-        name: "Ritardo segnale",
-        description: "Un problema al segnale causa un ritardo.",
+        name: "Signal Delay",
+        description: "A signal problem causes a delay.",
         effect: -3,
         prob: 0.12,
       },
       {
-        name: "Treno affollato",
-        description: "Il treno è troppo pieno, aspetti il prossimo.",
+        name: "Crowded Train",
+        description: "The train is too crowded; you wait for the next one.",
         effect: -1,
         prob: 0.1,
       },
       {
-        name: "Portafoglio trovato",
-        description:
-          "Trovi un portafoglio smarrito e lo restituisci. Ricompensa!",
+        name: "Found Wallet",
+        description: "You find a lost wallet and return it. Reward!",
         effect: 4,
         prob: 0.08,
       },
       {
-        name: "Sciopero parziale",
-        description: "Uno sciopero riduce la frequenza dei treni.",
+        name: "Partial Strike",
+        description: "A strike reduces train frequency.",
         effect: -2,
         prob: 0.1,
       },
       {
-        name: "Corsa fortunata",
-        description: "Il treno arriva proprio mentre arrivi in stazione!",
+        name: "Lucky Ride",
+        description: "The train arrives just as you reach the platform!",
         effect: 2,
         prob: 0.1,
       },
       {
-        name: "Musica dal vivo",
-        description: "Un musicista rallegra il viaggio. Ti senti generoso.",
+        name: "Live Music",
+        description: "A musician brightens your journey. You feel generous.",
         effect: 1,
         prob: 0.05,
       },
@@ -307,7 +304,7 @@ async function seed() {
     }
     console.log("✓ Events seeded (10 events)");
 
-    // ---------- GAME SCORES (for Mario and Luigi) ----------
+    // ---------- GAME SCORES ----------
     const mario = await get("SELECT id FROM user WHERE email = ?", [
       "mario@polito.it",
     ]);
@@ -335,25 +332,9 @@ async function seed() {
     }
     console.log("✓ Game scores seeded (Mario & Luigi)");
 
-    console.log("\n✅ Database seeded successfully with Torino data!");
+    console.log("\n✅ Database seeded successfully!");
     console.log("Users: mario@polito.it, luigi@polito.it, peach@polito.it");
     console.log("Password for all: password123");
-    console.log("\n📋 Metro Network:");
-    console.log(
-      "  🔴 Red Line:   Centrale → Porta Velaria → Crocevia del Falco → Piazza delle Lanterne → Porta Nuova",
-    );
-    console.log(
-      "  🔵 Blue Line:  Fontana Oscura → Borgo Sereno → Centrale → Viale dei Mosaici → Lingotto",
-    );
-    console.log(
-      "  🟢 Green Line: Porta Velaria → Fontana Oscura → Torre Cinerea → Campo dell'Eco → Cenisia",
-    );
-    console.log(
-      "  🟡 Yellow Line: Piazza delle Lanterne → Torre Cinerea → Viale dei Mosaici → Campo dell'Eco → Rebaudengo",
-    );
-    console.log(
-      "\n  Interchange stations: Centrale, Porta Velaria, Fontana Oscura, Piazza delle Lanterne, Torre Cinerea, Viale dei Mosaici",
-    );
   } catch (err) {
     console.error("Seed error:", err);
     process.exit(1);

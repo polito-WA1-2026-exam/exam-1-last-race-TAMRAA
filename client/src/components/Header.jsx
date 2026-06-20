@@ -15,7 +15,7 @@ export default function Header() {
         <nav className="nav-links">
           <Link to="/">Home</Link>
           {isAuthenticated && <Link to="/game">Play</Link>}
-          <Link to="/leaderboard">Standings</Link>
+          <Link to="/leaderboard">Leaderboard</Link>
           {isAuthenticated ? (
             <>
               <span style={{ color: "#888", marginLeft: "16px" }}>

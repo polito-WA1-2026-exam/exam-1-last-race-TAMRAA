@@ -44,7 +44,7 @@ export default function HomePage() {
             className="btn btn-outline"
             style={{ fontSize: "18px", padding: "12px 32px" }}
           >
-            Standings
+            Leaderboard
           </Link>
         </div>
       </div>
@@ -52,7 +52,7 @@ export default function HomePage() {
       <div className="row" style={{ marginTop: "32px" }}>
         <div className="col-4">
           <div className="card" style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🗺️</div>
+            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🗾</div>
             <h3>1. Plan</h3>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
               You have 90 seconds to plan your route from the terminal to your
@@ -62,7 +62,7 @@ export default function HomePage() {
         </div>
         <div className="col-4">
           <div className="card" style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🚇</div>
+            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🚅</div>
             <h3>2. Travel</h3>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
               Watch the animation of your journey and face random events that
@@ -72,7 +72,7 @@ export default function HomePage() {
         </div>
         <div className="col-4">
           <div className="card" style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🏆</div>
+            <div style={{ fontSize: "40px", marginBottom: "8px" }}>🥳</div>
             <h3>3. Win</h3>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
               Earn points in every round. Make it to the top of the leaderboard!

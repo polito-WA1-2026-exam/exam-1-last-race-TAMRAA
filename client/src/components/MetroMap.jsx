@@ -1,3 +1,5 @@
+// AI GENERATED CAUSE I COULDN'T FIGURE OUT HOW TO DRAW THE MAP
+
 import { useMemo } from "react";
 
 export default function MetroMap({
@@ -51,7 +53,7 @@ export default function MetroMap({
     return line ? line.color : "#666";
   };
 
-  if (!metroData) return <div>Downloading the map...</div>;
+  if (!metroData) return <div>Caricamento mappa...</div>;
 
   return (
     <div className="metro-map">
@@ -155,7 +157,7 @@ export default function MetroMap({
                 fill="#4CAF50"
                 fontWeight="bold"
               >
-                DEPARTURE
+                PARTENZA
               </text>
             )}
             {s.id === destination && (
@@ -167,7 +169,7 @@ export default function MetroMap({
                 fill="#F44336"
                 fontWeight="bold"
               >
-                DESTINATION
+                ARRIVO
               </text>
             )}
           </g>

@@ -21,14 +21,14 @@ export default function RouteBuilder({route, stations, onClear, onUndo, onConfir
             onClick={onUndo}
             disabled={route.length <= 1}
           >
-            Terminate
+            Cancel
           </button>
           <button
             className="btn btn-danger"
             onClick={onClear}
             disabled={route.length <= 1}
           >
-            Cancel
+            Reset
           </button>
         </div>
       </div>

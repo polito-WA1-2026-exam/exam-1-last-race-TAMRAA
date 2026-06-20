@@ -2,7 +2,8 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container">
-        &copy; 2026 Race the Rails - Web Applications Project - Abdallah Tamra
+        Abdallah Tamra - PoliTo Web Application Project - 2026 Race the Rails
+        &copy;
       </div>
     </footer>
   );

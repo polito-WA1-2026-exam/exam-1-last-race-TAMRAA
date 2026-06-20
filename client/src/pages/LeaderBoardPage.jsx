@@ -41,14 +41,14 @@ export default function LeaderboardPage() {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Downloading Standings...
+        Downloading Leaderboard...
       </div>
     );
   }
 
   return (
     <div>
-      <h2 style={{ marginBottom: "20px" }}>🏆 General Standings</h2>
+      <h2 style={{ marginBottom: "20px" }}>🏆 General Standing</h2>
 
       {error && <div className="alert alert-danger">{error}</div>}
 

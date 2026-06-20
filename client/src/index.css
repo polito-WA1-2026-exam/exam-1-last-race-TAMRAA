@@ -41,7 +41,7 @@ button {
 
 .header h1 {
   font-size: 24px;
-  color: #e94560;
+  color: #4579e9;
 }
 
 .header h1 span {
@@ -59,7 +59,7 @@ button {
 }
 
 .nav-links .btn {
-  background: #e94560;
+  background: #4579e9;
   color: #fff;
   border: none;
   padding: 6px 16px;
@@ -69,8 +69,8 @@ button {
 
 .nav-links .btn-outline {
   background: transparent;
-  border: 1px solid #e94560;
-  color: #e94560;
+  border: 1px solid #4579e9;
+  color: #4579e9;
   padding: 6px 16px;
   border-radius: 4px;
   font-size: 14px;
@@ -131,7 +131,7 @@ button {
 }
 
 .btn-primary {
-  background: #e94560;
+  background: #4579e9;
   color: #fff;
 }
 
@@ -168,12 +168,12 @@ button {
 
 .btn-outline {
   background: transparent;
-  border: 1px solid #e94560;
-  color: #e94560;
+  border: 1px solid #4579e9;
+  color: #4579e9;
 }
 
 .btn-outline:hover {
-  background: #e94560;
+  background: #4579e9;
   color: #fff;
 }
 
@@ -206,7 +206,7 @@ button {
 
 .form-group input:focus {
   outline: none;
-  border-color: #e94560;
+  border-color: #4579e9;
 }
 
 /* Alerts */
@@ -238,7 +238,7 @@ button {
 }
 
 .hero h1 .highlight {
-  color: #e94560;
+  color: #4579e9;
 }
 
 .hero p {
@@ -335,7 +335,7 @@ button {
 }
 
 .route-step .num {
-  background: #e94560;
+  background: #4579e9;
   color: #fff;
   border-radius: 50%;
   width: 20px;
@@ -403,7 +403,7 @@ button {
 }
 
 .badge-primary {
-  background: #e94560;
+  background: #4579e9;
   color: #fff;
 }
 
@@ -489,7 +489,7 @@ button {
 
 .modal-content .score-display {
   font-size: 48px;
-  color: #e94560;
+  color: #4579e9;
   margin: 16px 0;
 }
 
@@ -595,7 +595,7 @@ button {
 
 .journey-progress .bar .fill {
   height: 100%;
-  background: #e94560;
+  background: #4579e9;
   transition: width 0.5s;
 }
 
@@ -640,7 +640,7 @@ button {
 
 .loading .spinner {
   border: 3px solid #0f3460;
-  border-top: 3px solid #e94560;
+  border-top: 3px solid #4579e9;
   border-radius: 50%;
   width: 40px;
   height: 40px;
