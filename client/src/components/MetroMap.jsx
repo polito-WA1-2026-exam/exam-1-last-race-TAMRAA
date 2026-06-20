@@ -51,7 +51,7 @@ export default function MetroMap({
     return line ? line.color : "#666";
   };
 
-  if (!metroData) return <div>Caricamento mappa...</div>;
+  if (!metroData) return <div>Downloading the map...</div>;
 
   return (
     <div className="metro-map">
@@ -155,7 +155,7 @@ export default function MetroMap({
                 fill="#4CAF50"
                 fontWeight="bold"
               >
-                PARTENZA
+                DEPARTURE
               </text>
             )}
             {s.id === destination && (
@@ -167,7 +167,7 @@ export default function MetroMap({
                 fill="#F44336"
                 fontWeight="bold"
               >
-                ARRIVO
+                DESTINATION
               </text>
             )}
           </g>

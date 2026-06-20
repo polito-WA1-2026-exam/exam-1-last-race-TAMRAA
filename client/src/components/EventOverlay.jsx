@@ -1,21 +1,27 @@
-export default function EventOverlay({
-  event,
-  show,
-  onClose,
-  fromStation,
-  toStation,
-}) {
-  if (!show || !event) return null;
+export default function EventOverlay({event,show,onClose,fromStation,toStation,})
+
+{
+  if (!show || !event){
+    return null;
+  }
 
   const getIcon = () => {
-    if (event.coin_effect > 0) return "🎉";
-    if (event.coin_effect < 0) return "⚠️";
-    return "🚇";
+    if (event.coin_effect > 0){
+      return "🎉";
+    }
+    if (event.coin_effect < 0){
+      return "⚠️";
+    }
+    return "Ⓜ️";
   };
 
   const getEffectClass = () => {
-    if (event.coin_effect > 0) return "positive";
-    if (event.coin_effect < 0) return "negative";
+    if (event.coin_effect > 0){
+      return "positive";
+    }
+    if (event.coin_effect < 0){
+      return "negative";
+    }
     return "zero";
   };
 
@@ -33,7 +39,7 @@ export default function EventOverlay({
         </div>
         <div className="event-desc">{event.description}</div>
         <button className="btn btn-primary" onClick={onClose}>
-          Continua
+          Continue
         </button>
       </div>
     </div>

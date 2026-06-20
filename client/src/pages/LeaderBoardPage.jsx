@@ -41,31 +41,31 @@ export default function LeaderboardPage() {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Caricamento classifica...
+        Downloading Standings...
       </div>
     );
   }
 
   return (
     <div>
-      <h2 style={{ marginBottom: "20px" }}>🏆 Classifica Generale</h2>
+      <h2 style={{ marginBottom: "20px" }}>🏆 General Standings</h2>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card">
         {topScores.length === 0 ? (
           <p style={{ color: "#888", textAlign: "center", padding: "20px 0" }}>
-            Nessun punteggio registrato. Sii il primo a giocare!
+            No scores have been recorded. Be the first to play!
           </p>
         ) : (
           <table className="leaderboard-table">
             <thead>
               <tr>
-                <th>Pos.</th>
-                <th>Giocatore</th>
-                <th>Punteggio</th>
+                <th>Position</th>
+                <th>Player</th>
+                <th>Points</th>
                 <th>Round</th>
-                <th>Monete</th>
+                <th>Coins</th>
               </tr>
             </thead>
             <tbody>
@@ -94,12 +94,12 @@ export default function LeaderboardPage() {
 
       {isAuthenticated && myScores && (
         <div style={{ marginTop: "32px" }}>
-          <h3 style={{ marginBottom: "16px" }}>📊 I Miei Punteggi</h3>
+          <h3 style={{ marginBottom: "16px" }}>📊 My Points</h3>
           <div className="row" style={{ marginBottom: "16px" }}>
             <div className="col-4">
               <div className="card" style={{ textAlign: "center" }}>
                 <div style={{ color: "#888", fontSize: "13px" }}>
-                  Partite Giocate
+                  Games Played
                 </div>
                 <div style={{ fontSize: "28px", fontWeight: "bold" }}>
                   {myScores.totalGames}
@@ -109,7 +109,7 @@ export default function LeaderboardPage() {
             <div className="col-4">
               <div className="card" style={{ textAlign: "center" }}>
                 <div style={{ color: "#888", fontSize: "13px" }}>
-                  Miglior Punteggio
+                  Best Score
                 </div>
                 <div
                   style={{
@@ -125,7 +125,7 @@ export default function LeaderboardPage() {
             <div className="col-4">
               <div className="card" style={{ textAlign: "center" }}>
                 <div style={{ color: "#888", fontSize: "13px" }}>
-                  Miglior Round
+                  Best Round
                 </div>
                 <div style={{ fontSize: "28px", fontWeight: "bold" }}>
                   {myScores.bestScore?.rounds_completed || 0}
@@ -140,9 +140,9 @@ export default function LeaderboardPage() {
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Punteggio</th>
+                    <th>Points</th>
                     <th>Round</th>
-                    <th>Monete</th>
+                    <th>Coins</th>
                   </tr>
                 </thead>
                 <tbody>

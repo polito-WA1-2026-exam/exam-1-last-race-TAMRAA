@@ -68,7 +68,7 @@ export default function LoginPage() {
               textAlign: "center",
             }}
           >
-            Utenti: mario@polito.it, luigi@polito.it, peach@polito.it
+            Users: mario@polito.it, luigi@polito.it, peach@polito.it
             <br />
             Password: password123
           </div>

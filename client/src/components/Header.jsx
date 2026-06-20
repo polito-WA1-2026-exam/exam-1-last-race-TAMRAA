@@ -9,17 +9,17 @@ export default function Header() {
       <div className="container">
         <Link to="/" style={{ textDecoration: "none" }}>
           <h1>
-            🚇 <span>Race the</span> Rails
+            Ⓜ️ <span>Race the</span> Rails
           </h1>
         </Link>
         <nav className="nav-links">
           <Link to="/">Home</Link>
-          {isAuthenticated && <Link to="/game">Gioca</Link>}
-          <Link to="/leaderboard">Classifica</Link>
+          {isAuthenticated && <Link to="/game">Play</Link>}
+          <Link to="/leaderboard">Standings</Link>
           {isAuthenticated ? (
             <>
               <span style={{ color: "#888", marginLeft: "16px" }}>
-                Ciao, {user.name}
+                Welcome, {user.name}
               </span>
               <button
                 className="btn"

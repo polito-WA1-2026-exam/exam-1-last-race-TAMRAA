@@ -1,8 +1,8 @@
 // ============================================================
 // DAO – Data Access Object
 // ============================================================
-// All database queries are isolated here.
-// The rest of the application never talks directly to SQLite.
+// All database queries are isolated here
+// The rest of the application never talks directly to SQLite
 // ============================================================
 
 import db from "./db.mjs";

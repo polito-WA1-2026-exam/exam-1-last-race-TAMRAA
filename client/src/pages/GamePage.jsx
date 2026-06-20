@@ -90,7 +90,7 @@ export default function GamePage() {
           score: result.finalScore || 0,
           rounds: result.roundsCompleted || round,
           coins: result.newCoins || 0,
-          reason: result.reason || "Partita terminata",
+          reason: result.reason || "Match finished",
         });
         setPhase(PHASES.GAME_OVER);
       } else {
@@ -118,7 +118,7 @@ export default function GamePage() {
         score: score,
         rounds: round,
         coins: coins,
-        reason: "Partita completata",
+        reason: "Game ended",
       });
       setPhase(PHASES.GAME_OVER);
     }
@@ -136,7 +136,7 @@ export default function GamePage() {
         score: Math.max(0, coins),
         rounds: round,
         coins: coins,
-        reason: "Hai terminato la partita",
+        reason: "You finished the match",
       });
       setPhase(PHASES.GAME_OVER);
     } catch (err) {
@@ -169,7 +169,7 @@ export default function GamePage() {
           onClick={initGame}
           style={{ marginLeft: "12px" }}
         >
-          Riprova
+          Try Again
         </button>
       </div>
     );
@@ -188,7 +188,7 @@ export default function GamePage() {
                     className="badge badge-primary"
                     style={{ marginLeft: "8px" }}
                   >
-                    Punti: {score}
+                    Points: {score}
                   </span>
                 </div>
                 <div
@@ -211,17 +211,17 @@ export default function GamePage() {
           <div className="col-4">
             <div className="card">
               <div className="card-header">
-                <span className="card-title">Missione</span>
+                <span className="card-title">Mission</span>
               </div>
               <div className="mission">
                 <div className="mission-item">
-                  <span className="mission-label">Da:</span>
+                  <span className="mission-label">From:</span>
                   <span className="mission-station start">
                     {session.origin_name}
                   </span>
                 </div>
                 <div className="mission-item">
-                  <span className="mission-label">A:</span>
+                  <span className="mission-label">To:</span>
                   <span className="mission-station end">
                     {session.destination_name}
                   </span>
@@ -245,7 +245,7 @@ export default function GamePage() {
             </div>
 
             <button className="btn btn-danger w-100" onClick={handleEndGame}>
-              Termina Partita
+              Match finished
             </button>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function GamePage() {
                   className="badge badge-primary"
                   style={{ marginLeft: "8px" }}
                 >
-                  Punti: {score}
+                  Points: {score}
                 </span>
               </div>
               <CoinCounter coins={coins} change={coinChange} />

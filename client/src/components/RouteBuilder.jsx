@@ -1,11 +1,6 @@
-export default function RouteBuilder({
-  route,
-  stations,
-  onClear,
-  onUndo,
-  onConfirm,
-  isValid,
-}) {
+export default function RouteBuilder({route, stations, onClear, onUndo, onConfirm, isValid,})
+
+{
   const stationLookup = {};
   stations.forEach((s) => (stationLookup[s.id] = s));
 
@@ -26,14 +21,14 @@ export default function RouteBuilder({
             onClick={onUndo}
             disabled={route.length <= 1}
           >
-            Annulla
+            Terminate
           </button>
           <button
             className="btn btn-danger"
             onClick={onClear}
             disabled={route.length <= 1}
           >
-            Cancella
+            Cancel
           </button>
         </div>
       </div>
@@ -41,7 +36,7 @@ export default function RouteBuilder({
       <div className="route-stations">
         {route.length === 0 ? (
           <span className="route-empty">
-            Clicca sulle stazioni per costruire il percorso
+            Click on the way to construct the pathway
           </span>
         ) : (
           route.map((id, idx) => {
@@ -72,10 +67,10 @@ export default function RouteBuilder({
         }}
       >
         <div style={{ fontSize: "13px", color: "#888" }}>
-          Stazioni: {route.length}
+          Station: {route.length}
           {route.length > 1 && (
             <span style={{ marginLeft: "12px" }}>
-              Cambi: {Math.max(0, route.length - 2)}
+              Change: {Math.max(0, route.length - 2)}
             </span>
           )}
         </div>
@@ -84,7 +79,7 @@ export default function RouteBuilder({
           onClick={onConfirm}
           disabled={!isValid}
         >
-          Conferma Percorso
+          Confirm Path
         </button>
       </div>
     </div>

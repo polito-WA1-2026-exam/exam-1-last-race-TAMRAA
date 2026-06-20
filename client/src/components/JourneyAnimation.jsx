@@ -83,7 +83,7 @@ export default function JourneyAnimation({
       {currentEvent && (
         <div className="segment-display">
           <span className="station">{getFromName()}</span>
-          <span className="arrow">🚇 →</span>
+          <span className="arrow">Ⓜ️ →</span>
           <span className="station">{getToName()}</span>
         </div>
       )}

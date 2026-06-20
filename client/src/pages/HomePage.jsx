@@ -11,9 +11,8 @@ export default function HomePage() {
           <span className="highlight">Race</span> the Rails
         </h1>
         <p>
-          Pianifica il percorso più veloce attraverso la rete metropolitana.
-          Affronta eventi imprevisti, gestisci le tue monete e scala la
-          classifica!
+          Plan the fastest route through the subway system. Deal with unexpected
+          events, manage your coins, and climb the leaderboard!
         </p>
         <div
           style={{
@@ -29,7 +28,7 @@ export default function HomePage() {
               className="btn btn-primary"
               style={{ fontSize: "18px", padding: "12px 32px" }}
             >
-              Gioca Ora
+              Play the Game
             </Link>
           ) : (
             <Link
@@ -37,7 +36,7 @@ export default function HomePage() {
               className="btn btn-primary"
               style={{ fontSize: "18px", padding: "12px 32px" }}
             >
-              Accedi per Giocare
+              Login to Play
             </Link>
           )}
           <Link
@@ -45,7 +44,7 @@ export default function HomePage() {
             className="btn btn-outline"
             style={{ fontSize: "18px", padding: "12px 32px" }}
           >
-            Classifica
+            Standings
           </Link>
         </div>
       </div>
@@ -54,29 +53,29 @@ export default function HomePage() {
         <div className="col-4">
           <div className="card" style={{ textAlign: "center" }}>
             <div style={{ fontSize: "40px", marginBottom: "8px" }}>🗺️</div>
-            <h3>1. Pianifica</h3>
+            <h3>1. Plan</h3>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
-              Hai 90 secondi per costruire il tuo percorso dal capolinea alla
-              destinazione.
+              You have 90 seconds to plan your route from the terminal to your
+              destination
             </p>
           </div>
         </div>
         <div className="col-4">
           <div className="card" style={{ textAlign: "center" }}>
             <div style={{ fontSize: "40px", marginBottom: "8px" }}>🚇</div>
-            <h3>2. Viaggia</h3>
+            <h3>2. Travel</h3>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
-              Guarda l'animazione del tuo viaggio e affronta eventi casuali che
-              influenzano le tue monete.
+              Watch the animation of your journey and face random events that
+              affect your coins
             </p>
           </div>
         </div>
         <div className="col-4">
           <div className="card" style={{ textAlign: "center" }}>
             <div style={{ fontSize: "40px", marginBottom: "8px" }}>🏆</div>
-            <h3>3. Vinci</h3>
+            <h3>3. Win</h3>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
-              Accumula punti in ogni round. Arriva in cima alla classifica!
+              Earn points in every round. Make it to the top of the leaderboard!
             </p>
           </div>
         </div>
