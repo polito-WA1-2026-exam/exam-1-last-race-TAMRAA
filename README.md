@@ -104,36 +104,10 @@ Leaderboard page displaying rankings and player statistics
 
 ---
 
-# Use of AI Tools
-
-I used AI tools (specifically ChatGPT / Claude) during the development of this project for the following purposes:
-
-## Conceptual Clarification
-
-Used AI to better understand exam requirements and game mechanics
-
-## Code Structure Guidance
-
-Received guidance on organizing the project following the two-server architecture and best practices for React and Express
-
 ## Debugging Assistance
 
 Used AI to diagnose and resolve issues such as SQLite constraint violations and asynchronous database operations
 
-## Code Generation Support
-
-Used AI-generated suggestions for boilerplate code, component organization, and database queries, adapting all generated content to project requirements
-
-## Verification Process
-
-All AI-generated code was:
-
-- Reviewed line-by-line
-- Tested manually
-- Modified when necessary
-- Integrated with my own design decisions
-
-I fully understand and can explain every part of the codebase and take full responsibility for the implementation
 
 ---
 
