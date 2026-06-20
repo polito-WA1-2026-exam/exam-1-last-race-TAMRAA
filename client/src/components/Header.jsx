@@ -14,7 +14,6 @@ export default function Header() {
         </Link>
         <nav className="nav-links">
           <Link to="/">Home</Link>
-          {isAuthenticated && <Link to="/game">Play</Link>}
           <Link to="/leaderboard">Leaderboard</Link>
           {isAuthenticated ? (
             <>

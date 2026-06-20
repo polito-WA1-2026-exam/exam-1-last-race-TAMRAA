@@ -29,8 +29,14 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await authAPI.logout();
-    setUser(null);
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Always clear the user state, even if the API call fails
+      setUser(null);
+    }
   };
 
   const value = {
