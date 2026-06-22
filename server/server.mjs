@@ -192,10 +192,16 @@ app.post(
         return res.status(400).json({ error: "Game already ended" });
       }
 
-      // Helper: end game with zero score (no events)
+      // Helper: end game with zero score (no events) using atomic function
       const endWithZero = async (reason) => {
-        await dao.endGameSession(sessionId);
-        await dao.saveGameScore(req.user.id, 0, gameSession.current_round, 0);
+        const saved = await dao.endGameSessionAtomic(
+          sessionId,
+          req.user.id,
+          0,
+          gameSession.current_round,
+          0,
+        );
+        // Even if saved is false (already ended), we return gameOver
         return res.json({
           success: false,
           gameOver: true,
@@ -247,8 +253,13 @@ app.post(
 
       // If coins go negative, game over (but show events)
       if (newCoins < 0) {
-        await dao.endGameSession(sessionId);
-        await dao.saveGameScore(req.user.id, 0, roundsCompleted, 0);
+        const saved = await dao.endGameSessionAtomic(
+          sessionId,
+          req.user.id,
+          0,
+          roundsCompleted,
+          0,
+        );
         return res.json({
           success: false,
           gameOver: true,
@@ -268,9 +279,9 @@ app.post(
       const filtered = reachable.filter((id) => id !== newOrigin);
 
       if (filtered.length === 0) {
-        // No reachable destination → end game
-        await dao.endGameSession(sessionId);
-        await dao.saveGameScore(
+        // No reachable destination → end game atomically
+        const saved = await dao.endGameSessionAtomic(
+          sessionId,
           req.user.id,
           finalScore,
           roundsCompleted,
@@ -302,8 +313,8 @@ app.post(
 
       // Max 10 rounds
       if (newRound > 10) {
-        await dao.endGameSession(sessionId);
-        await dao.saveGameScore(
+        const saved = await dao.endGameSessionAtomic(
+          sessionId,
           req.user.id,
           finalScore,
           newRound - 1,
@@ -369,13 +380,24 @@ app.post("/api/game/end", async (req, res) => {
     }
 
     const finalScore = Math.max(0, gameSession.coins);
-    await dao.endGameSession(sessionId);
-    await dao.saveGameScore(
+    const saved = await dao.endGameSessionAtomic(
+      sessionId,
       req.user.id,
       finalScore,
       gameSession.current_round,
       gameSession.coins,
     );
+
+    if (!saved) {
+      // Another request already ended it; return current state
+      const updated = await dao.getGameSessionById(sessionId);
+      return res.json({
+        finalScore: updated?.score || finalScore,
+        roundsCompleted: updated?.current_round || gameSession.current_round,
+        coinsRemaining: updated?.coins || gameSession.coins,
+        message: "Already ended by another request",
+      });
+    }
 
     res.json({
       finalScore,

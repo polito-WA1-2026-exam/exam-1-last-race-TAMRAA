@@ -72,9 +72,11 @@ CREATE TABLE IF NOT EXISTS game_session (
 CREATE TABLE IF NOT EXISTS game_score (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
+  session_id INTEGER UNIQUE,       -- Enforces one score per session
   score INTEGER NOT NULL,
   rounds_completed INTEGER NOT NULL,
   coins_remaining INTEGER NOT NULL,
   played_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES user(id)
+  FOREIGN KEY (user_id) REFERENCES user(id),
+  FOREIGN KEY (session_id) REFERENCES game_session(id)
 );

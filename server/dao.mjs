@@ -101,7 +101,6 @@ export const getRandomEvent = () => {
           return;
         }
       }
-      // Fallback (should never happen if probabilities sum to 1)
       resolve(events[events.length - 1]);
     });
   });
@@ -178,29 +177,85 @@ export const updateGameSession = (
   });
 };
 
-export const endGameSession = (id) => {
+// ---- ATOMIC GAME END – prevents duplicate scores ----
+export const endGameSessionAtomic = (
+  sessionId,
+  userId,
+  finalScore,
+  roundsCompleted,
+  coinsRemaining,
+) => {
   return new Promise((resolve, reject) => {
-    db.run(
-      "UPDATE game_session SET is_active = 0 WHERE id = ?",
-      [id],
-      function (err) {
-        if (err) reject(err);
-        else resolve(this.changes);
-      },
-    );
+    db.run("BEGIN TRANSACTION", (err) => {
+      if (err) return reject(err);
+
+      db.get(
+        "SELECT is_active FROM game_session WHERE id = ? AND user_id = ?",
+        [sessionId, userId],
+        (err, row) => {
+          if (err) {
+            db.run("ROLLBACK", () => reject(err));
+            return;
+          }
+          if (!row || row.is_active === 0) {
+            db.run("ROLLBACK", () => resolve(false));
+            return;
+          }
+
+          db.run(
+            "UPDATE game_session SET is_active = 0 WHERE id = ? AND is_active = 1",
+            [sessionId],
+            function (err) {
+              if (err) {
+                db.run("ROLLBACK", () => reject(err));
+                return;
+              }
+              if (this.changes === 0) {
+                db.run("ROLLBACK", () => resolve(false));
+                return;
+              }
+
+              // Insert score with session_id (UNIQUE constraint prevents duplicates)
+              db.run(
+                "INSERT INTO game_score (user_id, session_id, score, rounds_completed, coins_remaining) VALUES (?, ?, ?, ?, ?)",
+                [
+                  userId,
+                  sessionId,
+                  finalScore,
+                  roundsCompleted,
+                  coinsRemaining,
+                ],
+                function (err) {
+                  if (err) {
+                    db.run("ROLLBACK", () => reject(err));
+                    return;
+                  }
+                  db.run("COMMIT", (err) => {
+                    if (err) reject(err);
+                    else resolve(true);
+                  });
+                },
+              );
+            },
+          );
+        },
+      );
+    });
   });
 };
 
-// ---- GAME SCORES ----
+// ---- GAME SCORES (used for queries only, not for ending games) ----
 export const saveGameScore = (
   userId,
   score,
   roundsCompleted,
   coinsRemaining,
 ) => {
+  // This function is kept for backward compatibility but should NOT be used
+  // for active game sessions. Use endGameSessionAtomic instead.
   return new Promise((resolve, reject) => {
     db.run(
-      "INSERT INTO game_score (user_id, score, rounds_completed, coins_remaining) VALUES (?, ?, ?, ?)",
+      "INSERT INTO game_score (user_id, session_id, score, rounds_completed, coins_remaining) VALUES (?, NULL, ?, ?, ?)",
       [userId, score, roundsCompleted, coinsRemaining],
       function (err) {
         if (err) reject(err);
@@ -279,7 +334,6 @@ export const findReachableStations = (originId, minDistance) => {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM connection", (err, connections) => {
       if (err) reject(err);
-      // Build adjacency list
       const adj = {};
       connections.forEach((c) => {
         if (!adj[c.station_a]) adj[c.station_a] = [];

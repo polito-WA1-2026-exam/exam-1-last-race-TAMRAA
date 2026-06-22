@@ -40,9 +40,10 @@ export default function GamePage() {
   const [submitting, setSubmitting] = useState(false);
   const [pendingGameOver, setPendingGameOver] = useState(null);
 
-  // Refs for cleanup
+  // Refs for cleanup and locking
   const gameEndedRef = useRef(false);
   const mountedRef = useRef(true);
+  const submittingRef = useRef(false); // synchronous lock
 
   // ---- Handle coin changes during journey ----
   const handleCoinChange = (change) => {
@@ -69,6 +70,7 @@ export default function GamePage() {
       setError("");
       gameEndedRef.current = false;
       setSubmitting(false);
+      submittingRef.current = false;
       setPendingGameOver(null);
 
       const metro = await gameAPI.getMetroData();
@@ -118,9 +120,10 @@ export default function GamePage() {
 
   // ---- Submit route (always sent to server) ----
   const handleConfirmRoute = async () => {
-    if (submitting || gameEndedRef.current) return;
-
+    if (submittingRef.current || gameEndedRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
+
     try {
       const result = await gameAPI.submitRoute(session.id, route);
       console.log("Route submission result:", result);
@@ -140,6 +143,7 @@ export default function GamePage() {
           coins: result.newCoins ?? 0,
           reason: result.reason || "Match finished",
         });
+        submittingRef.current = false;
         setSubmitting(false);
         return;
       }
@@ -155,6 +159,7 @@ export default function GamePage() {
           reason: result.reason || "Match finished",
         });
         setPhase(PHASES.GAME_OVER);
+        submittingRef.current = false;
         setSubmitting(false);
         return;
       }
@@ -171,6 +176,7 @@ export default function GamePage() {
       console.error(err);
       setError(err.message);
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -195,7 +201,8 @@ export default function GamePage() {
 
   // ---- Manual end game ----
   const handleEndGame = async () => {
-    if (submitting || gameEndedRef.current) return;
+    if (submittingRef.current || gameEndedRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const result = await gameAPI.endGame(session.id);
@@ -218,6 +225,7 @@ export default function GamePage() {
       });
       setPhase(PHASES.GAME_OVER);
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -231,7 +239,7 @@ export default function GamePage() {
 
   const handleGoHome = () => navigate("/");
 
-  // ---- RENDER ----
+  // ---- RENDER (unchanged) ----
   if (phase === PHASES.LOADING) {
     return (
       <div className="loading">
@@ -317,7 +325,6 @@ export default function GamePage() {
 
   // ---- PLANNING ----
   if (phase === PHASES.PLANNING && metroData && session) {
-    // Build unique segments for the list
     const allSegments = [];
     const seen = new Set();
     metroData.connections.forEach((c) => {

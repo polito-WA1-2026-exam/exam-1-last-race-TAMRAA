@@ -60,7 +60,19 @@ async function seed() {
     await exec(schema);
     console.log("✓ Schema created");
 
-    // 2. Clear all existing data
+    // 2. Ensure the unique index exists (even if column already present)
+    const tableInfo = await all("PRAGMA table_info(game_score)");
+    const hasSessionId = tableInfo.some((col) => col.name === "session_id");
+    if (!hasSessionId) {
+      await run("ALTER TABLE game_score ADD COLUMN session_id INTEGER");
+    }
+    // Create index; IF NOT EXISTS prevents errors if already present
+    await run(
+      "CREATE UNIQUE INDEX IF NOT EXISTS idx_game_score_session_id ON game_score(session_id)",
+    );
+    console.log("✓ Unique index on game_score(session_id) ensured");
+
+    // 3. Clear all existing data
     console.log("Clearing existing data...");
     await exec("DELETE FROM game_score;");
     await exec("DELETE FROM game_session;");
@@ -110,11 +122,26 @@ async function seed() {
       { id: "centrale", name: "Centrale", pos_x: 80, pos_y: 150 },
       { id: "porta_palazzo", name: "Porta Palazzo", pos_x: 170, pos_y: 150 },
       { id: "piazza_statuto", name: "Piazza Statuto", pos_x: 260, pos_y: 150 },
-      { id: "piazza_castello", name: "Piazza Castello", pos_x: 350, pos_y: 150 },
+      {
+        id: "piazza_castello",
+        name: "Piazza Castello",
+        pos_x: 350,
+        pos_y: 150,
+      },
       { id: "porta_nuova", name: "Porta Nuova", pos_x: 450, pos_y: 150 },
       { id: "superga", name: "Superga", pos_x: 400, pos_y: 50 },
-      { id: "monte_cappucini", name: "Monte dei Cappucini", pos_x: 400, pos_y: 110 },
-      { id: "barriera_milano", name: "Barriera Milano", pos_x: 400, pos_y: 170 },
+      {
+        id: "monte_cappucini",
+        name: "Monte dei Cappucini",
+        pos_x: 400,
+        pos_y: 110,
+      },
+      {
+        id: "barriera_milano",
+        name: "Barriera Milano",
+        pos_x: 400,
+        pos_y: 170,
+      },
       { id: "lingotto", name: "Lingotto", pos_x: 400, pos_y: 230 },
       { id: "juventus", name: "Juventus Stadium", pos_x: 170, pos_y: 50 },
       { id: "campus_einaudi", name: "Campus Einaudi", pos_x: 170, pos_y: 230 },
@@ -200,18 +227,63 @@ async function seed() {
 
     // ---------- EVENTS – Balanced (range -4 to +4) ----------
     const events = [
-      // Positive events (sum of probabilities = 0.5)
-      { name: "Found a coin", description: "You find a coin on the platform.", effect: 1, prob: 0.15 },
-      { name: "Kind passenger", description: "A passenger gives you 2 coins for helping them.", effect: 2, prob: 0.10 },
-      { name: "Bonus ride", description: "The conductor gives you 3 coins as a bonus.", effect: 3, prob: 0.05 },
-      { name: "Lucky day", description: "A stroke of luck! You gain 4 coins.", effect: 4, prob: 0.02 },
-      // Negative events (sum of probabilities = 0.5)
-      { name: "Lost a coin", description: "You drop a coin on the train.", effect: -1, prob: 0.15 },
-      { name: "Ticket fine", description: "You forgot to validate your ticket. Pay 2 coins.", effect: -2, prob: 0.10 },
-      { name: "Delay penalty", description: "A delay costs you 3 coins in wasted time.", effect: -3, prob: 0.05 },
-      { name: "Wallet stolen", description: "Your wallet is stolen! You lose 4 coins.", effect: -4, prob: 0.02 },
-      // Neutral events (fill remaining probability)
-      { name: "Smooth ride", description: "The journey goes perfectly. No change.", effect: 0, prob: 0.36 },
+      // Positive events
+      {
+        name: "Found a coin",
+        description: "You find a coin on the platform.",
+        effect: 1,
+        prob: 0.15,
+      },
+      {
+        name: "Kind passenger",
+        description: "A passenger gives you 2 coins for helping them.",
+        effect: 2,
+        prob: 0.1,
+      },
+      {
+        name: "Bonus ride",
+        description: "The conductor gives you 3 coins as a bonus.",
+        effect: 3,
+        prob: 0.05,
+      },
+      {
+        name: "Lucky day",
+        description: "A stroke of luck! You gain 4 coins.",
+        effect: 4,
+        prob: 0.02,
+      },
+      // Negative events
+      {
+        name: "Lost a coin",
+        description: "You drop a coin on the train.",
+        effect: -1,
+        prob: 0.15,
+      },
+      {
+        name: "Ticket fine",
+        description: "You forgot to validate your ticket. Pay 2 coins.",
+        effect: -2,
+        prob: 0.1,
+      },
+      {
+        name: "Delay penalty",
+        description: "A delay costs you 3 coins in wasted time.",
+        effect: -3,
+        prob: 0.05,
+      },
+      {
+        name: "Wallet stolen",
+        description: "Your wallet is stolen! You lose 4 coins.",
+        effect: -4,
+        prob: 0.02,
+      },
+      // Neutral
+      {
+        name: "Smooth ride",
+        description: "The journey goes perfectly. No change.",
+        effect: 0,
+        prob: 0.36,
+      },
     ];
 
     for (const e of events) {
@@ -241,7 +313,7 @@ async function seed() {
 
     for (const s of scores) {
       await run(
-        "INSERT INTO game_score (user_id, score, rounds_completed, coins_remaining) VALUES (?, ?, ?, ?)",
+        "INSERT INTO game_score (user_id, session_id, score, rounds_completed, coins_remaining) VALUES (?, NULL, ?, ?, ?)",
         [s.user_id, s.score, s.rounds, s.coins],
       );
     }
@@ -250,7 +322,6 @@ async function seed() {
     console.log("\n✅ Database seeded successfully!");
     console.log("Users: mario@polito.it, luigi@polito.it, peach@polito.it");
     console.log("Password for all: password123");
-    console.log("Events now balanced with effects from -4 to +4.");
   } catch (err) {
     console.error("Seed error:", err);
     process.exit(1);
