@@ -76,23 +76,6 @@
 
 ---
 
-# Screenshots
-
-> Place screenshots in the `img/` folder
-
-## Gameplay Screenshot
-
-![Gameplay](./img/gameplay.png)
-
-Planning phase showing metro map, timer, route builder, and mission display
-
-## Leaderboard Screenshot
-
-![Leaderboard](./img/leaderboard.png)
-
-Leaderboard page displaying rankings and player statistics
-
----
 
 # Users Credentials
 
@@ -112,12 +95,6 @@ Used AI to diagnose and resolve issues such as SQLite constraint violations and 
 ---
 
 # How to Run the Application
-
-## Prerequisites
-
-- Node.js 24.x LTS
-- npm or yarn
-- nodemon
 
 ## Server Setup
 

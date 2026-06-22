@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { gameAPI } from "../lib/API.js";
 import MetroMap from "../components/MetroMap.jsx";
@@ -17,6 +17,7 @@ const PHASES = {
 
 export default function GamePage() {
   const navigate = useNavigate();
+
   const [phase, setPhase] = useState(PHASES.LOADING);
   const [metroData, setMetroData] = useState(null);
   const [session, setSession] = useState(null);
@@ -28,40 +29,89 @@ export default function GamePage() {
   const [gameOverData, setGameOverData] = useState(null);
   const [error, setError] = useState("");
   const [coinChange, setCoinChange] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+
+  const gameEndedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const endedSessionRef = useRef(null);
 
   useEffect(() => {
-    initGame();
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
+
+  useEffect(() => {
+    const sessionId = session?.id;
+    const isActive =
+      phase !== PHASES.GAME_OVER && session?.is_active && !gameEndedRef.current;
+
+    return () => {
+      if (
+        !mountedRef.current &&
+        sessionId &&
+        isActive &&
+        endedSessionRef.current !== sessionId
+      ) {
+        console.log("Auto‑end on unmount for session", sessionId);
+        gameAPI
+          .endGame(sessionId)
+          .then((result) => {
+            console.log("Auto‑end result:", result);
+            gameEndedRef.current = true;
+            endedSessionRef.current = sessionId;
+          })
+          .catch((err) => console.warn("Auto‑end failed:", err));
+      }
+    };
+  }, [session, phase]);
 
   const initGame = async () => {
     try {
       setPhase(PHASES.LOADING);
       setError("");
+      gameEndedRef.current = false;
+      endedSessionRef.current = null;
+      setSubmitting(false);
+
+      // Reset coins to 20
+      setCoins(20);
+      setCoinChange(0);
+
       const metro = await gameAPI.getMetroData();
       setMetroData(metro);
+
       const { session: s } = await gameAPI.startGame();
+      console.log("New session from server:", s);
+
+      // Force coins to 20 (ignore server's coins)
+      setCoins(20);
+      setScore(s.score || 0);
+      setRound(s.current_round || 1);
       setSession(s);
-      setCoins(s.coins);
-      setScore(s.score);
-      setRound(s.current_round);
       setRoute([s.origin_station]);
+      setCoinChange(0);
+
       setPhase(PHASES.PLANNING);
     } catch (err) {
+      console.error("initGame error:", err);
       setError(err.message);
     }
   };
 
+  useEffect(() => {
+    initGame();
+  }, []);
+
   const handleStationClick = useCallback(
     (stationId) => {
       if (phase !== PHASES.PLANNING) return;
-
       setRoute((prev) => {
         const last = prev[prev.length - 1];
         if (last === stationId) return prev;
         const idx = prev.indexOf(stationId);
         if (idx !== -1) return prev.slice(0, idx + 1);
-
-        // Check connection
         const isConnected = metroData.connections.some(
           (c) =>
             (c.station_a === last && c.station_b === stationId) ||
@@ -75,87 +125,121 @@ export default function GamePage() {
   );
 
   const isValidRoute =
+    session &&
     route.length >= 2 &&
-    route[0] === session?.origin_station &&
-    route[route.length - 1] === session?.destination_station;
+    route[0] === session.origin_station &&
+    route[route.length - 1] === session.destination_station;
+
+  useEffect(() => {
+    console.log("State:", {
+      phase,
+      coins,
+      coinChange,
+      route,
+      sessionId: session?.id,
+    });
+  }, [phase, coins, coinChange, route, session]);
 
   const handleConfirmRoute = async () => {
-    if (!isValidRoute) return;
+    if (!isValidRoute || submitting || gameEndedRef.current) return;
 
+    setSubmitting(true);
     try {
       const result = await gameAPI.submitRoute(session.id, route);
+      console.log("Route submission result:", result);
 
       if (result.gameOver) {
+        // Game over – set coins to 0 (the server returns 0 anyway)
+        setCoins(0);
+        gameEndedRef.current = true;
         setGameOverData({
-          score: result.finalScore || 0,
-          rounds: result.roundsCompleted || round,
-          coins: result.newCoins || 0,
+          score: result.finalScore ?? 0,
+          rounds: result.roundsCompleted ?? round,
+          coins: result.newCoins ?? 0, // will be 0
           reason: result.reason || "Match finished",
         });
         setPhase(PHASES.GAME_OVER);
       } else {
+        // Successful journey: do NOT update coins from server – let animation apply events
+        const updated = result.session;
+        setSession(updated);
+        setScore(updated.score);
+        setRound(updated.current_round);
         setJourneyEvents(result.journeyEvents);
         setCoinChange(0);
         setPhase(PHASES.JOURNEY);
       }
     } catch (err) {
+      console.error("handleConfirmRoute error:", err);
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleJourneyComplete = async () => {
-    try {
-      const { session: updated } = await gameAPI.getSession();
-      setSession(updated);
-      setScore(updated.score);
-      setCoins(updated.coins);
-      setRound(updated.current_round);
-      setRoute([updated.origin_station]);
-      setPhase(PHASES.PLANNING);
-    } catch (err) {
-      // If no session, game ended
-      setGameOverData({
-        score: score,
-        rounds: round,
-        coins: coins,
-        reason: "Game ended",
-      });
-      setPhase(PHASES.GAME_OVER);
+  const handleJourneyComplete = () => {
+    console.log("Journey complete. Current coins:", coins);
+    if (session) {
+      setRoute([session.origin_station]);
     }
+    setPhase(PHASES.PLANNING);
   };
 
   const handleCoinChange = (change) => {
+    console.log(`Coin change: ${change > 0 ? "+" : ""}${change}`);
     setCoinChange((prev) => prev + change);
-    setCoins((prev) => prev + change);
+    setCoins((prev) => {
+      const newCoins = prev + change;
+      console.log(`Coins updated: ${prev} → ${newCoins}`);
+      return newCoins;
+    });
   };
 
   const handleEndGame = async () => {
+    if (submitting || gameEndedRef.current) return;
+
+    setSubmitting(true);
     try {
-      await gameAPI.endGame(session.id);
+      const result = await gameAPI.endGame(session.id);
+      console.log("End game result:", result);
+      gameEndedRef.current = true;
       setGameOverData({
-        score: Math.max(0, coins),
-        rounds: round,
-        coins: coins,
+        score: result.finalScore,
+        rounds: result.roundsCompleted,
+        coins: result.coinsRemaining,
         reason: "You finished the match",
       });
       setPhase(PHASES.GAME_OVER);
     } catch (err) {
-      setError(err.message);
+      console.error("handleEndGame error:", err);
+      gameEndedRef.current = true;
+      setGameOverData({
+        score: score,
+        rounds: round,
+        coins: coins,
+        reason: "Game ended (error)",
+      });
+      setPhase(PHASES.GAME_OVER);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handlePlayAgain = () => {
     setGameOverData(null);
+    gameEndedRef.current = false;
+    endedSessionRef.current = null;
     initGame();
   };
 
   const handleGoHome = () => navigate("/");
 
+  // ---------- RENDER ----------
   if (phase === PHASES.LOADING) {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        Caricamento...
+        Loading...
       </div>
     );
   }
@@ -164,11 +248,7 @@ export default function GamePage() {
     return (
       <div className="alert alert-danger" style={{ marginTop: "20px" }}>
         {error}
-        <button
-          className="btn btn-primary"
-          onClick={initGame}
-          style={{ marginLeft: "12px" }}
-        >
+        <button className="btn btn-primary" onClick={initGame}>
           Try Again
         </button>
       </div>
@@ -233,19 +313,26 @@ export default function GamePage() {
               <RouteBuilder
                 route={route}
                 stations={metroData.stations}
-                onClear={() => setRoute([session.origin_station])}
+                onClear={() => {
+                  setRoute([session.origin_station]);
+                  setCoinChange(0);
+                }}
                 onUndo={() =>
                   setRoute((prev) =>
                     prev.length > 1 ? prev.slice(0, -1) : prev,
                   )
                 }
                 onConfirm={handleConfirmRoute}
-                isValid={isValidRoute}
+                isValid={isValidRoute && !submitting}
               />
             </div>
 
-            <button className="btn btn-danger w-100" onClick={handleEndGame}>
-              Abort Match
+            <button
+              className="btn btn-danger w-100"
+              onClick={handleEndGame}
+              disabled={submitting}
+            >
+              Finish Match
             </button>
           </div>
         </div>

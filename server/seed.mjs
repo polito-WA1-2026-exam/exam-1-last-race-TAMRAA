@@ -4,6 +4,12 @@
 // Run with: node seed.mjs
 // ============================================================
 
+// ============================================================
+// SEED SCRIPT – Populates the database with Torino Metro data
+// ============================================================
+// Run with: node seed.mjs
+// ============================================================
+
 import db from "./db.mjs";
 import crypto from "crypto";
 import { readFileSync } from "fs";
@@ -105,43 +111,20 @@ async function seed() {
     }
     console.log("✓ Lines seeded");
 
-    // ---------- STATIONS – all IDs must match those used in stationLines and connections ----------
+    // ---------- STATIONS ----------
     const stations = [
-      // Red Line (West → East)
       { id: "centrale", name: "Centrale", pos_x: 80, pos_y: 150 },
       { id: "porta_palazzo", name: "Porta Palazzo", pos_x: 170, pos_y: 150 },
       { id: "piazza_statuto", name: "Piazza Statuto", pos_x: 260, pos_y: 150 },
-      {
-        id: "piazza_castello",
-        name: "Piazza Castello",
-        pos_x: 350,
-        pos_y: 150,
-      },
+      { id: "piazza_castello", name: "Piazza Castello", pos_x: 350, pos_y: 150 },
       { id: "porta_nuova", name: "Porta Nuova", pos_x: 450, pos_y: 150 },
-
-      // Blue Line (North → South)
       { id: "superga", name: "Superga", pos_x: 400, pos_y: 50 },
-      {
-        id: "monte_cappucini",
-        name: "Monte dei Cappucini",
-        pos_x: 400,
-        pos_y: 110,
-      },
-      {
-        id: "barriera_milano",
-        name: "Barriera Milano",
-        pos_x: 400,
-        pos_y: 170,
-      },
+      { id: "monte_cappucini", name: "Monte dei Cappucini", pos_x: 400, pos_y: 110 },
+      { id: "barriera_milano", name: "Barriera Milano", pos_x: 400, pos_y: 170 },
       { id: "lingotto", name: "Lingotto", pos_x: 400, pos_y: 230 },
-
-      // Green Line (North → South)
-      // FIX: use "juventus" instead of "torre_cinerea"
       { id: "juventus", name: "Juventus Stadium", pos_x: 170, pos_y: 50 },
       { id: "campus_einaudi", name: "Campus Einaudi", pos_x: 170, pos_y: 230 },
       { id: "cenisia", name: "Cenisia", pos_x: 170, pos_y: 300 },
-
-      // Yellow Line (East → West)
       { id: "marconi", name: "Marconi", pos_x: 400, pos_y: 300 },
     ];
 
@@ -153,30 +136,23 @@ async function seed() {
     }
     console.log("✓ Stations seeded");
 
-    // ---------- STATION-LINE RELATIONSHIPS – use the correct station IDs ----------
+    // ---------- STATION-LINE RELATIONSHIPS ----------
     const stationLines = [
-      // Red Line
       { station: "centrale", line: "R", seq: 1 },
       { station: "porta_palazzo", line: "R", seq: 2 },
       { station: "piazza_statuto", line: "R", seq: 3 },
       { station: "piazza_castello", line: "R", seq: 4 },
       { station: "porta_nuova", line: "R", seq: 5 },
-
-      // Blue Line
       { station: "superga", line: "B", seq: 1 },
       { station: "monte_cappucini", line: "B", seq: 2 },
       { station: "centrale", line: "B", seq: 3 },
       { station: "barriera_milano", line: "B", seq: 4 },
       { station: "lingotto", line: "B", seq: 5 },
-
-      // Green Line – FIX: use "juventus" instead of "torre_cinerea"
       { station: "porta_palazzo", line: "G", seq: 1 },
       { station: "superga", line: "G", seq: 2 },
       { station: "juventus", line: "G", seq: 3 },
       { station: "campus_einaudi", line: "G", seq: 4 },
       { station: "cenisia", line: "G", seq: 5 },
-
-      // Yellow Line – FIX: use "juventus" instead of "torre_cinerea"
       { station: "piazza_castello", line: "Y", seq: 1 },
       { station: "juventus", line: "Y", seq: 2 },
       { station: "barriera_milano", line: "Y", seq: 3 },
@@ -192,27 +168,24 @@ async function seed() {
     }
     console.log("✓ Station-Line relationships seeded");
 
-    // ---------- CONNECTIONS (bidirectional) – all station IDs must exist ----------
+    // ---------- CONNECTIONS ----------
     const connections = [
       // Red Line
       { a: "centrale", b: "porta_palazzo", line: "R" },
       { a: "porta_palazzo", b: "piazza_statuto", line: "R" },
       { a: "piazza_statuto", b: "piazza_castello", line: "R" },
       { a: "piazza_castello", b: "porta_nuova", line: "R" },
-
       // Blue Line
       { a: "superga", b: "monte_cappucini", line: "B" },
       { a: "monte_cappucini", b: "centrale", line: "B" },
       { a: "centrale", b: "barriera_milano", line: "B" },
       { a: "barriera_milano", b: "lingotto", line: "B" },
-
-      // Green Line – FIX: use "juventus"
+      // Green Line
       { a: "porta_palazzo", b: "superga", line: "G" },
       { a: "superga", b: "juventus", line: "G" },
       { a: "juventus", b: "campus_einaudi", line: "G" },
       { a: "campus_einaudi", b: "cenisia", line: "G" },
-
-      // Yellow Line – FIX: use "juventus"
+      // Yellow Line
       { a: "piazza_castello", b: "juventus", line: "Y" },
       { a: "juventus", b: "barriera_milano", line: "Y" },
       { a: "barriera_milano", b: "campus_einaudi", line: "Y" },
@@ -220,7 +193,6 @@ async function seed() {
     ];
 
     for (const c of connections) {
-      // Insert both directions for bidirectional travel
       await run(
         "INSERT INTO connection (station_a, station_b, line_id) VALUES (?, ?, ?)",
         [c.a, c.b, c.line],
@@ -232,68 +204,20 @@ async function seed() {
     }
     console.log("✓ Connections seeded (bidirectional)");
 
-    // ---------- EVENTS (English) ----------
+    // ---------- EVENTS – Balanced (range -4 to +4) ----------
     const events = [
-      {
-        name: "Quiet Journey",
-        description: "The journey proceeds without any incidents.",
-        effect: 0,
-        prob: 0.15,
-      },
-      {
-        name: "Wrong Platform",
-        description: "You boarded the wrong platform, wasting time.",
-        effect: -2,
-        prob: 0.12,
-      },
-      {
-        name: "Kind Passenger",
-        description: "A passenger gives you a coin for helping them.",
-        effect: 1,
-        prob: 0.1,
-      },
-      {
-        name: "Ticket Inspection",
-        description: "Inspectors check your ticket. All is in order.",
-        effect: -1,
-        prob: 0.08,
-      },
-      {
-        name: "Signal Delay",
-        description: "A signal problem causes a delay.",
-        effect: -3,
-        prob: 0.12,
-      },
-      {
-        name: "Crowded Train",
-        description: "The train is too crowded; you wait for the next one.",
-        effect: -1,
-        prob: 0.1,
-      },
-      {
-        name: "Found Wallet",
-        description: "You find a lost wallet and return it. Reward!",
-        effect: 4,
-        prob: 0.08,
-      },
-      {
-        name: "Partial Strike",
-        description: "A strike reduces train frequency.",
-        effect: -2,
-        prob: 0.1,
-      },
-      {
-        name: "Lucky Ride",
-        description: "The train arrives just as you reach the platform!",
-        effect: 2,
-        prob: 0.1,
-      },
-      {
-        name: "Live Music",
-        description: "A musician brightens your journey. You feel generous.",
-        effect: 1,
-        prob: 0.05,
-      },
+      // Positive events (sum of probabilities = 0.5)
+      { name: "Found a coin", description: "You find a coin on the platform.", effect: 1, prob: 0.15 },
+      { name: "Kind passenger", description: "A passenger gives you 2 coins for helping them.", effect: 2, prob: 0.10 },
+      { name: "Bonus ride", description: "The conductor gives you 3 coins as a bonus.", effect: 3, prob: 0.05 },
+      { name: "Lucky day", description: "A stroke of luck! You gain 4 coins.", effect: 4, prob: 0.02 },
+      // Negative events (sum of probabilities = 0.5)
+      { name: "Lost a coin", description: "You drop a coin on the train.", effect: -1, prob: 0.15 },
+      { name: "Ticket fine", description: "You forgot to validate your ticket. Pay 2 coins.", effect: -2, prob: 0.10 },
+      { name: "Delay penalty", description: "A delay costs you 3 coins in wasted time.", effect: -3, prob: 0.05 },
+      { name: "Wallet stolen", description: "Your wallet is stolen! You lose 4 coins.", effect: -4, prob: 0.02 },
+      // Neutral events (fill remaining probability)
+      { name: "Smooth ride", description: "The journey goes perfectly. No change.", effect: 0, prob: 0.36 },
     ];
 
     for (const e of events) {
@@ -302,7 +226,7 @@ async function seed() {
         [e.name, e.description, e.effect, e.prob],
       );
     }
-    console.log("✓ Events seeded (10 events)");
+    console.log("✓ Events seeded (balanced ±4 with neutral)");
 
     // ---------- GAME SCORES ----------
     const mario = await get("SELECT id FROM user WHERE email = ?", [
@@ -318,10 +242,7 @@ async function seed() {
 
     const scores = [
       { user_id: mario.id, score: 45, rounds: 3, coins: 12 },
-      { user_id: mario.id, score: 62, rounds: 5, coins: 8 },
-      { user_id: mario.id, score: 38, rounds: 4, coins: 15 },
       { user_id: luigi.id, score: 28, rounds: 2, coins: 18 },
-      { user_id: luigi.id, score: 51, rounds: 4, coins: 10 },
     ];
 
     for (const s of scores) {
@@ -335,6 +256,7 @@ async function seed() {
     console.log("\n✅ Database seeded successfully!");
     console.log("Users: mario@polito.it, luigi@polito.it, peach@polito.it");
     console.log("Password for all: password123");
+    console.log("Events now balanced with effects from -4 to +4.");
   } catch (err) {
     console.error("Seed error:", err);
     process.exit(1);
