@@ -1,6 +1,6 @@
 /**
  * Data Access Object – all database operations
- * Centralizes SQLite queries for clean separation.
+ * Centralizes SQLite queries for clean separation
  */
 
 import db from "./db.mjs";

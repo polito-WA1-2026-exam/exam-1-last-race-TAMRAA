@@ -1,6 +1,6 @@
 /**
- * Frontend API client – communicates with backend.
- * All requests include credentials (session cookies).
+ * Frontend API client – communicates with backend
+ * All requests include credentials (session cookies)
  */
 
 const API_URL = "http://localhost:3000/api";

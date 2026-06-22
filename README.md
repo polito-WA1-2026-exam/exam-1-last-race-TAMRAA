@@ -94,6 +94,18 @@ Used AI to diagnose and resolve issues such as SQLite constraint violations and 
 
 ---
 
+## 📸 Screenshots
+
+### General Ranking (Leaderboard)
+
+![Leaderboard](/client/public/leaderboard.png)
+
+### During a Game (Planning Phase)
+
+![Game](/client/public/game-flow.png)
+
+---
+
 # How to Run the Application
 
 ## Server Setup

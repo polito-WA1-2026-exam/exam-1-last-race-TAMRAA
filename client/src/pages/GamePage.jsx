@@ -1,5 +1,5 @@
 /**
- * GamePage – main game screen with phases: Setup, Planning, Journey, Game Over.
+ * GamePage – main game screen with phases: Setup, Planning, Journey, Game Over
  */
 
 import { useState, useEffect, useRef } from "react";

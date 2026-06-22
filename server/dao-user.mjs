@@ -1,6 +1,6 @@
 /**
  * User authentication DAO
- * Uses crypto.scrypt for password hashing with salt.
+ * Uses crypto.scrypt for password hashing with salt
  */
 
 import db from "./db.mjs";

@@ -4,12 +4,6 @@
 // Run with: node seed.mjs
 // ============================================================
 
-// ============================================================
-// SEED SCRIPT – Populates the database with Torino Metro data
-// ============================================================
-// Run with: node seed.mjs
-// ============================================================
-
 import db from "./db.mjs";
 import crypto from "crypto";
 import { readFileSync } from "fs";

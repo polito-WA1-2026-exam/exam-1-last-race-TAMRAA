@@ -4,7 +4,7 @@ export default function RouteBuilder({
   onUndo,
   onClear,
   onConfirm,
-  isValid, // kept but not used for disabling
+  isValid, 
 }) {
   const stationLookup = {};
   stations.forEach((s) => (stationLookup[s.id] = s));

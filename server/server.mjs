@@ -1,7 +1,7 @@
 /**
  * Last Race – Backend Server
- * Handles authentication, game logic, and API endpoints.
- * Uses Express, Passport (local), and SQLite.
+ * Handles authentication, game logic, and API endpoints
+ * Uses Express, Passport (local), and SQLite
  */
 
 import express from "express";
