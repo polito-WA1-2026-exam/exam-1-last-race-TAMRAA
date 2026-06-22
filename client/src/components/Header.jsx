@@ -9,7 +9,7 @@ export default function Header() {
       <div className="container">
         <Link to="/" style={{ textDecoration: "none" }}>
           <h1>
-            Ⓜ️ <span>Race the</span> Rails
+            Ⓜ️ <span>Last</span> Race
           </h1>
         </Link>
         <nav className="nav-links">

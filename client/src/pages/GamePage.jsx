@@ -1,3 +1,7 @@
+/**
+ * GamePage – main game screen with phases: Setup, Planning, Journey, Game Over.
+ */
+
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { gameAPI } from "../lib/API.js";
@@ -9,6 +13,7 @@ import SegmentList from "../components/SegmentList.jsx";
 import JourneyAnimation from "../components/JourneyAnimation.jsx";
 import GameOverModal from "../components/GameOverModal.jsx";
 
+// Possible phases
 const PHASES = {
   LOADING: "loading",
   SETUP: "setup",
@@ -20,6 +25,7 @@ const PHASES = {
 export default function GamePage() {
   const navigate = useNavigate();
 
+  // State
   const [phase, setPhase] = useState(PHASES.LOADING);
   const [metroData, setMetroData] = useState(null);
   const [session, setSession] = useState(null);
@@ -34,62 +40,41 @@ export default function GamePage() {
   const [submitting, setSubmitting] = useState(false);
   const [pendingGameOver, setPendingGameOver] = useState(null);
 
+  // Refs for cleanup
   const gameEndedRef = useRef(false);
   const mountedRef = useRef(true);
-  const endedSessionRef = useRef(null);
 
+  // ---- Handle coin changes during journey ----
   const handleCoinChange = (change) => {
     setCoinChange((prev) => prev + change);
     setCoins((prev) => prev + change);
   };
 
+  // ---- Auto‑end on unmount ----
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const sessionId = session?.id;
-    const isActive =
-      phase !== PHASES.GAME_OVER && session?.is_active && !gameEndedRef.current;
-
-    return () => {
-      if (
-        !mountedRef.current &&
-        sessionId &&
-        isActive &&
-        endedSessionRef.current !== sessionId
-      ) {
-        gameAPI
-          .endGame(sessionId)
-          .then((result) => {
-            gameEndedRef.current = true;
-            endedSessionRef.current = sessionId;
-          })
-          .catch((err) => console.warn("Auto‑end failed:", err));
+      const sessionId = session?.id;
+      if (sessionId && session.is_active && !gameEndedRef.current) {
+        gameAPI.endGame(sessionId).catch(() => {});
       }
     };
-  }, [session, phase]);
+  }, [session]);
 
+  // ---- Initialise game ----
   const initGame = async () => {
     try {
       setPhase(PHASES.LOADING);
       setError("");
       gameEndedRef.current = false;
-      endedSessionRef.current = null;
       setSubmitting(false);
       setPendingGameOver(null);
-
-      setCoins(20);
-      setCoinChange(0);
 
       const metro = await gameAPI.getMetroData();
       setMetroData(metro);
 
       const { session: s } = await gameAPI.startGame();
-
       setCoins(20);
       setScore(s.score || 0);
       setRound(s.current_round || 1);
@@ -99,7 +84,7 @@ export default function GamePage() {
 
       setPhase(PHASES.SETUP);
     } catch (err) {
-      console.error("initGame error:", err);
+      console.error(err);
       setError(err.message);
     }
   };
@@ -108,20 +93,19 @@ export default function GamePage() {
     initGame();
   }, []);
 
-  const handleStartPlanning = () => {
-    setPhase(PHASES.PLANNING);
-  };
+  // ---- Phase transitions ----
+  const handleStartPlanning = () => setPhase(PHASES.PLANNING);
 
+  // ---- Add a segment to the route ----
   const handleAddSegment = (newStationId) => {
     setRoute((prev) => {
       if (prev.length === 0) {
-        if (newStationId === session.origin_station) {
-          return [newStationId];
-        }
+        if (newStationId === session.origin_station) return [newStationId];
         return prev;
       }
       const last = prev[prev.length - 1];
       if (newStationId === last) return prev;
+      // Check connection
       const connected = metroData.connections.some(
         (c) =>
           (c.station_a === last && c.station_b === newStationId) ||
@@ -132,7 +116,7 @@ export default function GamePage() {
     });
   };
 
-  // No client-side validation – every submission goes to the server
+  // ---- Submit route (always sent to server) ----
   const handleConfirmRoute = async () => {
     if (submitting || gameEndedRef.current) return;
 
@@ -141,7 +125,7 @@ export default function GamePage() {
       const result = await gameAPI.submitRoute(session.id, route);
       console.log("Route submission result:", result);
 
-      // If game over but we have events, show journey first
+      // If game over with events, show journey first
       if (
         result.gameOver &&
         result.journeyEvents &&
@@ -175,7 +159,7 @@ export default function GamePage() {
         return;
       }
 
-      // Successful journey (game continues)
+      // Successful journey
       const updated = result.session;
       setSession(updated);
       setScore(updated.score);
@@ -184,13 +168,14 @@ export default function GamePage() {
       setCoinChange(0);
       setPhase(PHASES.JOURNEY);
     } catch (err) {
-      console.error("handleConfirmRoute error:", err);
+      console.error(err);
       setError(err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
+  // ---- After journey animation finishes ----
   const handleJourneyComplete = () => {
     setCoinChange(0);
 
@@ -201,15 +186,16 @@ export default function GamePage() {
       return;
     }
 
+    // Proceed to next round
     if (session) {
       setRoute([session.origin_station]);
     }
     setPhase(PHASES.PLANNING);
   };
 
+  // ---- Manual end game ----
   const handleEndGame = async () => {
     if (submitting || gameEndedRef.current) return;
-
     setSubmitting(true);
     try {
       const result = await gameAPI.endGame(session.id);
@@ -222,7 +208,7 @@ export default function GamePage() {
       });
       setPhase(PHASES.GAME_OVER);
     } catch (err) {
-      console.error("handleEndGame error:", err);
+      console.error(err);
       gameEndedRef.current = true;
       setGameOverData({
         score: score,
@@ -239,14 +225,13 @@ export default function GamePage() {
   const handlePlayAgain = () => {
     setGameOverData(null);
     gameEndedRef.current = false;
-    endedSessionRef.current = null;
     setPendingGameOver(null);
     initGame();
   };
 
   const handleGoHome = () => navigate("/");
 
-  // ---------- RENDER ----------
+  // ---- RENDER ----
   if (phase === PHASES.LOADING) {
     return (
       <div className="loading">
@@ -267,7 +252,7 @@ export default function GamePage() {
     );
   }
 
-  // SETUP
+  // ---- SETUP ----
   if (phase === PHASES.SETUP && metroData && session) {
     return (
       <div className="row">
@@ -321,9 +306,8 @@ export default function GamePage() {
               <span className="card-title">Instructions</span>
             </div>
             <p style={{ color: "#aaa", fontSize: "14px" }}>
-              Study the metro network carefully. When you are ready, click the
-              button above to start the planning phase. You will have 90 seconds
-              to build your route.
+              Study the metro network carefully. When ready, click the button to
+              start the timer.
             </p>
           </div>
         </div>
@@ -331,8 +315,9 @@ export default function GamePage() {
     );
   }
 
-  // PLANNING
+  // ---- PLANNING ----
   if (phase === PHASES.PLANNING && metroData && session) {
+    // Build unique segments for the list
     const allSegments = [];
     const seen = new Set();
     metroData.connections.forEach((c) => {
@@ -424,7 +409,6 @@ export default function GamePage() {
                 }
                 onClear={() => setRoute([session.origin_station])}
                 onConfirm={handleConfirmRoute}
-                isValid={false} // Always allow submission; client validation removed
               />
             </div>
 
@@ -441,7 +425,7 @@ export default function GamePage() {
     );
   }
 
-  // JOURNEY
+  // ---- JOURNEY ----
   if (phase === PHASES.JOURNEY) {
     return (
       <div className="row">
@@ -479,7 +463,7 @@ export default function GamePage() {
     );
   }
 
-  // GAME OVER
+  // ---- GAME OVER ----
   if (phase === PHASES.GAME_OVER && gameOverData) {
     return (
       <GameOverModal

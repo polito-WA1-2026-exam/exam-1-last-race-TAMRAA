@@ -1,6 +1,7 @@
-// ============================================================
-// FRONTEND API CLIENT – Talks to the backend server
-// ============================================================
+/**
+ * Frontend API client – communicates with backend.
+ * All requests include credentials (session cookies).
+ */
 
 const API_URL = "http://localhost:3000/api";
 
@@ -22,9 +23,7 @@ async function request(endpoint, options = {}) {
       try {
         const data = await response.json();
         errorMessage = data.error || errorMessage;
-      } catch {
-        // ignore
-      }
+      } catch (_) {}
     }
     throw new Error(errorMessage);
   }
@@ -32,10 +31,10 @@ async function request(endpoint, options = {}) {
   if (response.status === 204 || !hasContent) {
     return null;
   }
-
   return response.json();
 }
 
+// Auth endpoints
 export const authAPI = {
   login: (email, password) =>
     request("/login", {
@@ -46,6 +45,7 @@ export const authAPI = {
   getCurrentUser: () => request("/session/current"),
 };
 
+// Game endpoints
 export const gameAPI = {
   getMetroData: () => request("/metro"),
   getEvents: () => request("/events"),
@@ -63,6 +63,7 @@ export const gameAPI = {
     }),
 };
 
+// Leaderboard endpoints
 export const leaderboardAPI = {
   getTopScores: (limit = 10) => request(`/leaderboard?limit=${limit}`),
   getMyScores: () => request("/leaderboard/me"),
