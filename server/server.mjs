@@ -61,7 +61,12 @@ app.use(
     secret: "race-the-rails-secret-key-2026",
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 },
+    cookie: {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+      secure: false,
+    },
   }),
 );
 app.use(passport.authenticate("session"));
@@ -138,15 +143,19 @@ app.post("/api/game/start", async (req, res) => {
     }
     const originIdx = Math.floor(Math.random() * stations.length);
     const origin = stations[originIdx];
-    const reachableIds = await dao.findReachableStations(origin.id, 3);
+
+    // Try to find reachable stations with distance >= 3, fallback to any other station
+    let reachableIds = await dao.findReachableStations(origin.id, 3);
     if (reachableIds.length === 0) {
-      return res.status(500).json({
-        error: "No destinations can be reached within this distance >= 3",
-      });
+      // Fallback: pick any station that is not the origin
+      reachableIds = stations
+        .filter((s) => s.id !== origin.id)
+        .map((s) => s.id);
     }
     const destId =
       reachableIds[Math.floor(Math.random() * reachableIds.length)];
     const destination = await dao.getStationById(destId);
+
     const sessionId = await dao.createGameSession(
       userId,
       origin.id,
@@ -175,7 +184,7 @@ app.get("/api/game/session", async (req, res) => {
 
 app.post(
   "/api/game/route",
-  [check("route").isArray({ min: 2 }), check("sessionId").isInt()],
+  [check("route").isArray({ min: 1 }), check("sessionId").isInt()],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -193,69 +202,57 @@ app.post(
         return res.status(400).json({ error: "The game is already over" });
       }
 
-      // Validate route start and end
-      if (route[0] !== gameSession.origin_station) {
-        return res
-          .status(400)
-          .json({ error: "The route does not start at the departure station" });
-      }
-      if (route[route.length - 1] !== gameSession.destination_station) {
-        return res.status(400).json({
-          error: "The journey does not end at the destination station",
-        });
-      }
-
-      // --- INCOMPLETE ROUTE ---
-      if (route.length < 2) {
+      // ---------- Helper to end game with 0 score ----------
+      const endGameWithZero = async (reason) => {
         await dao.endGameSession(sessionId);
         await dao.saveGameScore(req.user.id, 0, gameSession.current_round, 0);
-        console.log(
-          `Score saved (incomplete route): user ${req.user.id}, score 0`,
-        );
         return res.json({
           success: false,
           gameOver: true,
-          reason: "Incomplete route (time ran out)",
+          reason: reason,
           finalScore: 0,
           roundsCompleted: gameSession.current_round,
           newCoins: 0,
+          journeyEvents: [],
+          coinChange: 0,
         });
+      };
+
+      // ---------- Validate route start ----------
+      if (route[0] !== gameSession.origin_station) {
+        return await endGameWithZero(
+          "Route does not start at the departure station",
+        );
       }
 
-      // Check each segment for connectivity
-      let invalid = false;
-      let invalidSegment = "";
+      // ---------- Validate route end ----------
+      if (route[route.length - 1] !== gameSession.destination_station) {
+        return await endGameWithZero(
+          "Route does not end at the destination station",
+        );
+      }
+
+      // ---------- Incomplete route (less than 2 stations) ----------
+      if (route.length < 2) {
+        return await endGameWithZero(
+          "Incomplete route (time ran out or submitted early)",
+        );
+      }
+
+      // ---------- Check connectivity for each segment ----------
       for (let i = 1; i < route.length; i++) {
         const connected = await dao.areStationsConnected(
           route[i - 1],
           route[i],
         );
         if (!connected) {
-          invalid = true;
-          invalidSegment = `${route[i - 1]} → ${route[i]}`;
-          break;
+          return await endGameWithZero(
+            `Invalid path: segment ${route[i - 1]} → ${route[i]} not connected`,
+          );
         }
       }
 
-      // --- INVALID ROUTE ---
-      if (invalid) {
-        await dao.endGameSession(sessionId);
-        await dao.saveGameScore(req.user.id, 0, gameSession.current_round, 0);
-        console.log(
-          `Score saved (invalid route): user ${req.user.id}, score 0`,
-        );
-        return res.json({
-          success: false,
-          gameOver: true,
-          reason: "Invalid path",
-          finalScore: 0,
-          roundsCompleted: gameSession.current_round,
-          newCoins: 0,
-          message: `Segment not valid: ${invalidSegment}`,
-        });
-      }
-
-      // --- VALID ROUTE: execute journey (random events per segment) ---
+      // ---------- VALID ROUTE: execute journey with random events ----------
       const journeyEvents = [];
       let coinChange = 0;
       for (let i = 1; i < route.length; i++) {
@@ -272,17 +269,14 @@ app.post(
       const roundsCompleted = gameSession.current_round;
       let finalScore = Math.max(0, newCoins);
 
-      // If coins go negative, game ends with 0 score
+      // ---------- If coins go negative, game over with events shown ----------
       if (newCoins < 0) {
         await dao.endGameSession(sessionId);
         await dao.saveGameScore(req.user.id, 0, roundsCompleted, 0);
-        console.log(
-          `Score saved (negative coins): user ${req.user.id}, score 0`,
-        );
         return res.json({
           success: false,
           gameOver: true,
-          reason: "Out-of-stock coins",
+          reason: "Out of coins",
           finalScore: 0,
           roundsCompleted,
           newCoins: 0,
@@ -291,22 +285,20 @@ app.post(
         });
       }
 
-      // Generate next round: new origin = previous destination
+      // ---------- Generate next round ----------
       const newOrigin = gameSession.destination_station;
       const stations = await dao.getAllStations();
       const reachable = await dao.findReachableStations(newOrigin, 3);
       const filtered = reachable.filter((id) => id !== newOrigin);
+
       if (filtered.length === 0) {
-        // No reachable destination → game ends
+        // No reachable destination → game ends, but show events first
         await dao.endGameSession(sessionId);
         await dao.saveGameScore(
           req.user.id,
           finalScore,
           roundsCompleted,
           newCoins,
-        );
-        console.log(
-          `Score saved (no destinations): user ${req.user.id}, score ${finalScore}`,
         );
         return res.json({
           success: true,
@@ -332,7 +324,7 @@ app.post(
       );
       const updatedSession = await dao.getGameSessionById(sessionId);
 
-      // End after 10 rounds
+      // ---------- End after 10 rounds ----------
       if (newRound > 10) {
         await dao.endGameSession(sessionId);
         await dao.saveGameScore(
@@ -340,9 +332,6 @@ app.post(
           finalScore,
           newRound - 1,
           newCoins,
-        );
-        console.log(
-          `Score saved (round limit): user ${req.user.id}, score ${finalScore}`,
         );
         return res.json({
           success: true,
@@ -356,7 +345,7 @@ app.post(
         });
       }
 
-      // --- SUCCESSFUL JOURNEY (game continues) ---
+      // ---------- SUCCESSFUL JOURNEY (game continues) ----------
       res.json({
         success: true,
         gameOver: false,
@@ -364,7 +353,7 @@ app.post(
         coinChange,
         newCoins,
         finalScore,
-        session: updatedSession, // full session with new origin/dest and coins
+        session: updatedSession,
         nextRound: {
           round: newRound,
           origin: {
@@ -394,7 +383,6 @@ app.post("/api/game/end", async (req, res) => {
     }
 
     if (!gameSession.is_active) {
-      // Already ended – return the saved data
       return res.json({
         finalScore: gameSession.score || 0,
         roundsCompleted: gameSession.current_round || 0,
@@ -410,9 +398,6 @@ app.post("/api/game/end", async (req, res) => {
       finalScore,
       gameSession.current_round,
       gameSession.coins,
-    );
-    console.log(
-      `Score saved (manual end): user ${req.user.id}, score ${finalScore}`,
     );
 
     res.json({

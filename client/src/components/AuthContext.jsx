@@ -34,7 +34,6 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Always clear the user state, even if the API call fails
       setUser(null);
     }
   };

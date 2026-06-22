@@ -1,15 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { gameAPI } from "../lib/API.js";
 import MetroMap from "../components/MetroMap.jsx";
 import Timer from "../components/Timer.jsx";
 import CoinCounter from "../components/CoinCounter.jsx";
 import RouteBuilder from "../components/RouteBuilder.jsx";
+import SegmentList from "../components/SegmentList.jsx";
 import JourneyAnimation from "../components/JourneyAnimation.jsx";
 import GameOverModal from "../components/GameOverModal.jsx";
 
 const PHASES = {
   LOADING: "loading",
+  SETUP: "setup",
   PLANNING: "planning",
   JOURNEY: "journey",
   GAME_OVER: "game_over",
@@ -30,10 +32,16 @@ export default function GamePage() {
   const [error, setError] = useState("");
   const [coinChange, setCoinChange] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [pendingGameOver, setPendingGameOver] = useState(null);
 
   const gameEndedRef = useRef(false);
   const mountedRef = useRef(true);
   const endedSessionRef = useRef(null);
+
+  const handleCoinChange = (change) => {
+    setCoinChange((prev) => prev + change);
+    setCoins((prev) => prev + change);
+  };
 
   useEffect(() => {
     mountedRef.current = true;
@@ -54,11 +62,9 @@ export default function GamePage() {
         isActive &&
         endedSessionRef.current !== sessionId
       ) {
-        console.log("Auto‑end on unmount for session", sessionId);
         gameAPI
           .endGame(sessionId)
           .then((result) => {
-            console.log("Auto‑end result:", result);
             gameEndedRef.current = true;
             endedSessionRef.current = sessionId;
           })
@@ -74,8 +80,8 @@ export default function GamePage() {
       gameEndedRef.current = false;
       endedSessionRef.current = null;
       setSubmitting(false);
+      setPendingGameOver(null);
 
-      // Reset coins to 20
       setCoins(20);
       setCoinChange(0);
 
@@ -83,9 +89,7 @@ export default function GamePage() {
       setMetroData(metro);
 
       const { session: s } = await gameAPI.startGame();
-      console.log("New session from server:", s);
 
-      // Force coins to 20 (ignore server's coins)
       setCoins(20);
       setScore(s.score || 0);
       setRound(s.current_round || 1);
@@ -93,7 +97,7 @@ export default function GamePage() {
       setRoute([s.origin_station]);
       setCoinChange(0);
 
-      setPhase(PHASES.PLANNING);
+      setPhase(PHASES.SETUP);
     } catch (err) {
       console.error("initGame error:", err);
       setError(err.message);
@@ -104,71 +108,81 @@ export default function GamePage() {
     initGame();
   }, []);
 
-  const handleStationClick = useCallback(
-    (stationId) => {
-      if (phase !== PHASES.PLANNING) return;
-      setRoute((prev) => {
-        const last = prev[prev.length - 1];
-        if (last === stationId) return prev;
-        const idx = prev.indexOf(stationId);
-        if (idx !== -1) return prev.slice(0, idx + 1);
-        const isConnected = metroData.connections.some(
-          (c) =>
-            (c.station_a === last && c.station_b === stationId) ||
-            (c.station_b === last && c.station_a === stationId),
-        );
-        if (isConnected) return [...prev, stationId];
+  const handleStartPlanning = () => {
+    setPhase(PHASES.PLANNING);
+  };
+
+  const handleAddSegment = (newStationId) => {
+    setRoute((prev) => {
+      if (prev.length === 0) {
+        if (newStationId === session.origin_station) {
+          return [newStationId];
+        }
         return prev;
-      });
-    },
-    [phase, metroData],
-  );
-
-  const isValidRoute =
-    session &&
-    route.length >= 2 &&
-    route[0] === session.origin_station &&
-    route[route.length - 1] === session.destination_station;
-
-  useEffect(() => {
-    console.log("State:", {
-      phase,
-      coins,
-      coinChange,
-      route,
-      sessionId: session?.id,
+      }
+      const last = prev[prev.length - 1];
+      if (newStationId === last) return prev;
+      const connected = metroData.connections.some(
+        (c) =>
+          (c.station_a === last && c.station_b === newStationId) ||
+          (c.station_b === last && c.station_a === newStationId),
+      );
+      if (!connected) return prev;
+      return [...prev, newStationId];
     });
-  }, [phase, coins, coinChange, route, session]);
+  };
 
+  // No client-side validation – every submission goes to the server
   const handleConfirmRoute = async () => {
-    if (!isValidRoute || submitting || gameEndedRef.current) return;
+    if (submitting || gameEndedRef.current) return;
 
     setSubmitting(true);
     try {
       const result = await gameAPI.submitRoute(session.id, route);
       console.log("Route submission result:", result);
 
+      // If game over but we have events, show journey first
+      if (
+        result.gameOver &&
+        result.journeyEvents &&
+        result.journeyEvents.length > 0
+      ) {
+        setJourneyEvents(result.journeyEvents);
+        setCoinChange(0);
+        setPhase(PHASES.JOURNEY);
+        setPendingGameOver({
+          score: result.finalScore ?? 0,
+          rounds: result.roundsCompleted ?? round,
+          coins: result.newCoins ?? 0,
+          reason: result.reason || "Match finished",
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      // Immediate game over (no events)
       if (result.gameOver) {
-        // Game over – set coins to 0 (the server returns 0 anyway)
         setCoins(0);
         gameEndedRef.current = true;
         setGameOverData({
           score: result.finalScore ?? 0,
           rounds: result.roundsCompleted ?? round,
-          coins: result.newCoins ?? 0, // will be 0
+          coins: result.newCoins ?? 0,
           reason: result.reason || "Match finished",
         });
         setPhase(PHASES.GAME_OVER);
-      } else {
-        // Successful journey: do NOT update coins from server – let animation apply events
-        const updated = result.session;
-        setSession(updated);
-        setScore(updated.score);
-        setRound(updated.current_round);
-        setJourneyEvents(result.journeyEvents);
-        setCoinChange(0);
-        setPhase(PHASES.JOURNEY);
+        setSubmitting(false);
+        return;
       }
+
+      // Successful journey (game continues)
+      const updated = result.session;
+      setSession(updated);
+      setScore(updated.score);
+      setRound(updated.current_round);
+      setJourneyEvents(result.journeyEvents);
+      setCoinChange(0);
+      setPhase(PHASES.JOURNEY);
     } catch (err) {
       console.error("handleConfirmRoute error:", err);
       setError(err.message);
@@ -178,21 +192,19 @@ export default function GamePage() {
   };
 
   const handleJourneyComplete = () => {
-    console.log("Journey complete. Current coins:", coins);
+    setCoinChange(0);
+
+    if (pendingGameOver) {
+      setGameOverData(pendingGameOver);
+      setPhase(PHASES.GAME_OVER);
+      setPendingGameOver(null);
+      return;
+    }
+
     if (session) {
       setRoute([session.origin_station]);
     }
     setPhase(PHASES.PLANNING);
-  };
-
-  const handleCoinChange = (change) => {
-    console.log(`Coin change: ${change > 0 ? "+" : ""}${change}`);
-    setCoinChange((prev) => prev + change);
-    setCoins((prev) => {
-      const newCoins = prev + change;
-      console.log(`Coins updated: ${prev} → ${newCoins}`);
-      return newCoins;
-    });
   };
 
   const handleEndGame = async () => {
@@ -201,7 +213,6 @@ export default function GamePage() {
     setSubmitting(true);
     try {
       const result = await gameAPI.endGame(session.id);
-      console.log("End game result:", result);
       gameEndedRef.current = true;
       setGameOverData({
         score: result.finalScore,
@@ -229,6 +240,7 @@ export default function GamePage() {
     setGameOverData(null);
     gameEndedRef.current = false;
     endedSessionRef.current = null;
+    setPendingGameOver(null);
     initGame();
   };
 
@@ -255,7 +267,82 @@ export default function GamePage() {
     );
   }
 
+  // SETUP
+  if (phase === PHASES.SETUP && metroData && session) {
+    return (
+      <div className="row">
+        <div className="col-8">
+          <div className="card">
+            <div className="card-header">
+              <span className="card-title">🗺️ Metro Network – Setup</span>
+              <span className="badge badge-secondary">Round {round}</span>
+            </div>
+            <MetroMap
+              metroData={metroData}
+              route={route}
+              origin={session.origin_station}
+              destination={session.destination_station}
+              showLines={true}
+              disabled={true}
+            />
+            <div style={{ padding: "1rem", textAlign: "center" }}>
+              <button
+                className="btn btn-primary"
+                onClick={handleStartPlanning}
+                style={{ fontSize: "1.2rem", padding: "0.75rem 2rem" }}
+              >
+                Start Planning (90s)
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="col-4">
+          <div className="card">
+            <div className="card-header">
+              <span className="card-title">Mission</span>
+            </div>
+            <div className="mission">
+              <div className="mission-item">
+                <span className="mission-label">From:</span>
+                <span className="mission-station start">
+                  {session.origin_name}
+                </span>
+              </div>
+              <div className="mission-item">
+                <span className="mission-label">To:</span>
+                <span className="mission-station end">
+                  {session.destination_name}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header">
+              <span className="card-title">Instructions</span>
+            </div>
+            <p style={{ color: "#aaa", fontSize: "14px" }}>
+              Study the metro network carefully. When you are ready, click the
+              button above to start the planning phase. You will have 90 seconds
+              to build your route.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // PLANNING
   if (phase === PHASES.PLANNING && metroData && session) {
+    const allSegments = [];
+    const seen = new Set();
+    metroData.connections.forEach((c) => {
+      const key = [c.station_a, c.station_b].sort().join("|");
+      if (!seen.has(key)) {
+        seen.add(key);
+        allSegments.push({ a: c.station_a, b: c.station_b });
+      }
+    });
+
     return (
       <div>
         <div className="row">
@@ -283,7 +370,8 @@ export default function GamePage() {
                 route={route}
                 origin={session.origin_station}
                 destination={session.destination_station}
-                onStationClick={handleStationClick}
+                showLines={false}
+                disabled={true}
               />
             </div>
           </div>
@@ -309,21 +397,34 @@ export default function GamePage() {
               </div>
             </div>
 
+            <div
+              className="card"
+              style={{ maxHeight: "300px", overflowY: "auto" }}
+            >
+              <div className="card-header">
+                <span className="card-title">Segments</span>
+              </div>
+              <SegmentList
+                segments={allSegments}
+                stations={metroData.stations}
+                route={route}
+                origin={session.origin_station}
+                onSelectSegment={handleAddSegment}
+              />
+            </div>
+
             <div className="card">
               <RouteBuilder
                 route={route}
                 stations={metroData.stations}
-                onClear={() => {
-                  setRoute([session.origin_station]);
-                  setCoinChange(0);
-                }}
                 onUndo={() =>
                   setRoute((prev) =>
                     prev.length > 1 ? prev.slice(0, -1) : prev,
                   )
                 }
+                onClear={() => setRoute([session.origin_station])}
                 onConfirm={handleConfirmRoute}
-                isValid={isValidRoute && !submitting}
+                isValid={false} // Always allow submission; client validation removed
               />
             </div>
 
@@ -340,6 +441,7 @@ export default function GamePage() {
     );
   }
 
+  // JOURNEY
   if (phase === PHASES.JOURNEY) {
     return (
       <div className="row">
@@ -363,6 +465,7 @@ export default function GamePage() {
               origin={session?.origin_station}
               destination={session?.destination_station}
               disabled
+              showLines={false}
             />
             <JourneyAnimation
               journeyEvents={journeyEvents}
@@ -376,6 +479,7 @@ export default function GamePage() {
     );
   }
 
+  // GAME OVER
   if (phase === PHASES.GAME_OVER && gameOverData) {
     return (
       <GameOverModal

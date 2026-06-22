@@ -678,3 +678,38 @@ button {
 .flex-center { display: flex; align-items: center; justify-content: center; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .w-100 { width: 100%; }
+
+/* Segment List */
+.segment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.segment-item {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #0f0f1a;
+  color: #aaa;
+  cursor: default;
+  transition: background 0.2s, color 0.2s;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+}
+
+.segment-item.selectable {
+  background: #16213e;
+  color: #fff;
+  cursor: pointer;
+  border-left-color: #4579e9;
+}
+
+.segment-item.selectable:hover {
+  background: #1a2a4e;
+  border-left-color: #e94560;
+}
+
+.segment-item:not(.selectable) {
+  opacity: 0.6;
+}

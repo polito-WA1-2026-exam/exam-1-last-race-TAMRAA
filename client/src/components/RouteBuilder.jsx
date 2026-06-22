@@ -1,6 +1,11 @@
-export default function RouteBuilder({route, stations, onClear, onUndo, onConfirm, isValid,})
-
-{
+export default function RouteBuilder({
+  route,
+  stations,
+  onUndo,
+  onClear,
+  onConfirm,
+  isValid, // kept but not used for disabling
+}) {
   const stationLookup = {};
   stations.forEach((s) => (stationLookup[s.id] = s));
 
@@ -36,7 +41,7 @@ export default function RouteBuilder({route, stations, onClear, onUndo, onConfir
       <div className="route-stations">
         {route.length === 0 ? (
           <span className="route-empty">
-            Click on the way to construct the pathway
+            Select a segment from the list to start building your route.
           </span>
         ) : (
           route.map((id, idx) => {
@@ -77,7 +82,7 @@ export default function RouteBuilder({route, stations, onClear, onUndo, onConfir
         <button
           className="btn btn-success"
           onClick={onConfirm}
-          disabled={!isValid}
+          // Always enabled – we removed disabled={!isValid}
         >
           Confirm Path
         </button>

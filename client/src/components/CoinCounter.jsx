@@ -1,12 +1,7 @@
 export default function CoinCounter({ coins, change = 0 }) {
-
   const getChangeClass = () => {
-    if (change > 0) {
-      return "positive";
-    }
-    if (change < 0) {
-      return "negative";
-    }
+    if (change > 0) return "positive";
+    if (change < 0) return "negative";
     return "";
   };
 

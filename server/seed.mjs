@@ -241,8 +241,8 @@ async function seed() {
     }
 
     const scores = [
-      { user_id: mario.id, score: 45, rounds: 3, coins: 12 },
-      { user_id: luigi.id, score: 28, rounds: 2, coins: 18 },
+      { user_id: mario.id, score: 12, rounds: 3, coins: 12 },
+      { user_id: luigi.id, score: 18, rounds: 2, coins: 18 },
     ];
 
     for (const s of scores) {

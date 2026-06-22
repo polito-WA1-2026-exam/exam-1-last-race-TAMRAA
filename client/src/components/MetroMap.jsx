@@ -1,5 +1,3 @@
-// AI GENERATED CAUSE I COULDN'T FIGURE OUT HOW TO DRAW THE MAP
-
 import { useMemo } from "react";
 
 export default function MetroMap({
@@ -9,6 +7,7 @@ export default function MetroMap({
   destination,
   onStationClick,
   disabled = false,
+  showLines = true,
 }) {
   const { stations, lines, connections } = metroData || {
     stations: [],
@@ -16,7 +15,6 @@ export default function MetroMap({
     connections: [],
   };
 
-  // Build line connections for rendering
   const lineConnections = useMemo(() => {
     const lookup = {};
     connections.forEach((c) => {
@@ -53,39 +51,37 @@ export default function MetroMap({
     return line ? line.color : "#666";
   };
 
-  if (!metroData) return <div>Caricamento mappa...</div>;
+  if (!metroData) return <div>Loading map...</div>;
 
   return (
     <div className="metro-map">
       <svg viewBox="0 0 700 340" preserveAspectRatio="xMidYMid meet">
-        {/* Background */}
         <rect x="0" y="0" width="700" height="340" fill="#0f0f1a" rx="8" />
 
-        {/* Metro Lines */}
-        {lines.map((line) => (
-          <g key={line.id}>
-            {(lineConnections[line.id] || []).map((conn, idx) => {
-              const a = stationLookup[conn.a];
-              const b = stationLookup[conn.b];
-              if (!a || !b) return null;
-              return (
-                <line
-                  key={idx}
-                  x1={a.pos_x}
-                  y1={a.pos_y}
-                  x2={b.pos_x}
-                  y2={b.pos_y}
-                  stroke={line.color}
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  opacity="0.8"
-                />
-              );
-            })}
-          </g>
-        ))}
+        {showLines &&
+          lines.map((line) => (
+            <g key={line.id}>
+              {(lineConnections[line.id] || []).map((conn, idx) => {
+                const a = stationLookup[conn.a];
+                const b = stationLookup[conn.b];
+                if (!a || !b) return null;
+                return (
+                  <line
+                    key={idx}
+                    x1={a.pos_x}
+                    y1={a.pos_y}
+                    x2={b.pos_x}
+                    y2={b.pos_y}
+                    stroke={line.color}
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    opacity="0.8"
+                  />
+                );
+              })}
+            </g>
+          ))}
 
-        {/* Route Overlay */}
         {route.length > 1 && (
           <g>
             {route.slice(0, -1).map((id, idx) => {
@@ -109,7 +105,6 @@ export default function MetroMap({
           </g>
         )}
 
-        {/* Stations */}
         {stations.map((s) => (
           <g
             key={s.id}
@@ -176,33 +171,34 @@ export default function MetroMap({
         ))}
       </svg>
 
-      {/* Legend */}
-      <div
-        style={{
-          display: "flex",
-          gap: "16px",
-          justifyContent: "center",
-          marginTop: "8px",
-          flexWrap: "wrap",
-        }}
-      >
-        {lines.map((l) => (
-          <div
-            key={l.id}
-            style={{ display: "flex", alignItems: "center", gap: "6px" }}
-          >
-            <span
-              style={{
-                width: "16px",
-                height: "4px",
-                background: l.color,
-                borderRadius: "2px",
-              }}
-            ></span>
-            <span style={{ fontSize: "12px", color: "#aaa" }}>{l.name}</span>
-          </div>
-        ))}
-      </div>
+      {showLines && (
+        <div
+          style={{
+            display: "flex",
+            gap: "16px",
+            justifyContent: "center",
+            marginTop: "8px",
+            flexWrap: "wrap",
+          }}
+        >
+          {lines.map((l) => (
+            <div
+              key={l.id}
+              style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <span
+                style={{
+                  width: "16px",
+                  height: "4px",
+                  background: l.color,
+                  borderRadius: "2px",
+                }}
+              ></span>
+              <span style={{ fontSize: "12px", color: "#aaa" }}>{l.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

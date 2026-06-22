@@ -1,19 +1,6 @@
-// ============================================================
-// DAO – User Authentication (Data Access Object)
-// ============================================================
-// Verifies user credentials using crypto.scrypt with salt.
-// Never returns password hash to the caller.
-// ============================================================
-
 import db from "./db.mjs";
 import crypto from "crypto";
 
-/**
- * Verify a user's credentials
- * @param {string} email - User's email
- * @param {string} password - Plain-text password
- * @returns {Promise<false|object>} - User object {id, email, name} or false
- */
 export const getUser = (email, password) => {
   return new Promise((resolve, reject) => {
     const sql = "SELECT * FROM user WHERE email = ?";
